@@ -1,0 +1,36 @@
+<div class="container">
+    <div class="list">
+        <ul>
+            <li class="item add-stock">
+                <p class="stock-name">添加股票</p>
+            </li>
+            <li class="item">
+                <p class="stock-name">中国软件</p>
+                <p class="stock-id">60000</p>
+            </li>
+            <li class="item">
+                <p class="stock-name">浦发银行</p>
+                <p class="stock-id">60000</p>
+            </li>
+            <li class="item">
+                <p class="stock-name">南京银行</p>
+                <p class="stock-id">60000</p>
+            </li>
+        </ul>
+    </div>
+    <div class="right-container">
+        <div class="bar">
+            <ul>
+                <li ng-class="{active: period == 0}" ng-click="period = 0">最近一周</li>
+                <li ng-class="{active: period == 1}" ng-click="period = 1">最近两周</li>
+                <li ng-class="{active: period == 2}" ng-click="period = 2">最近一月</li>
+                <li ng-class="{active: period == 3}" ng-click="period = 3">全部</li>
+            </ul>
+        </div>
+        <div class="chart-container">
+            <div class="top">
+                <div id="stock-sentiment-chart"></div>
+            </div>
+        </div>
+    </div>
+</div>

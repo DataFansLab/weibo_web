@@ -1,2 +1,6 @@
 
-angular.module('weibo', ['weibo.controllers']);
+angular.module('weibo', [
+    'weibo.controllers',
+    'weibo.route'
+]);
+
