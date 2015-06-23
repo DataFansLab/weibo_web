@@ -13,6 +13,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>社交金融</title>
     <link rel="stylesheet" href="application/resource/css/style.css">
+    <script type="text/javascript" src="application/resource/plugins/jquery-2.1.4.js"></script>
     <script type="text/javascript" src="application/resource/plugins/angular.js"></script>
     <script type="text/javascript" src="application/resource/plugins/angular-route.js"></script>
     <script type="text/javascript" src="application/resource/js/controller/weibo.js"></script>
@@ -33,7 +34,12 @@
 <!--</script>-->
 <!--<div ng-include="'picInfo.html'" class="well"></div>-->
 <div ng-view class="page"></div>
-<div id="footer"></div>
+<div id="footer">
+    <span class="link">关于我们|关于公司&nbsp;&nbsp;产品信息</span>
+    <span class="link">帮助|常见问题 在线客服</span>
+    <span class="link">联系我们|15431@cssweb.com.cn</span>
+    <span>北京中软万维网络技术有限公司</span>
+</div>
 
 <script type="text/javascript" src="application/resource/plugins/echarts/echarts.js"></script>
 </body>

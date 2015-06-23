@@ -25,8 +25,40 @@ ul {
 .font14 {
     font-size: 1.4rem;
 }
+.font16 {
+    font-size: 1.6rem;
+}
+.font20 {
+    font-size: 2.0rem;
+}
+.font24 {
+    font-size: 2.4rem;
+}
 .align-center {
     text-align: center;
+}
+.clearfix:after {
+    content: "";
+    display: block;
+    clear: both;
+    height: 0;
+
+}
+.mr0 {
+    margin: 0;
+}
+.pull-left {
+    display: inline-block;
+    float: left;
+}
+.inline-block {
+    display: inline-block;
+}
+::-webkit-scrollbar {
+    width: 12px;
+}
+::-webkit-scrollbar-thumb {
+    background: #333333;
 }
 /* --- 公用部分 end --- */
 #nav {
@@ -72,8 +104,25 @@ ul {
     text-align: center;
     line-height: 50px;
 }
-.item:hover {
-    background-color: #327cc0 !important;
+.add-stock .icon-add {
+    position: relative;
+    top: 5px;
+    margin-right: 10px;
+}
+.container .list .item:hover {
+    background-color: #327cc0;
+}
+.container .list .add-stock:hover {
+    background-color: #242322;
+}
+.container .list .delete-icon {
+    position: relative;
+    top: -10px;
+    float: right;
+    display: none;
+}
+.container .list .item:hover .delete-icon {
+    display: inline-block;
 }
 .item:hover .stock-id {
     color: #ffffff;
@@ -89,6 +138,7 @@ ul {
 .right-container {
     display: inline-block;
     width: 100%;
+    margin-bottom: 10px;
     vertical-align: top;
 }
 .right-container .bar {
@@ -109,11 +159,142 @@ ul {
     margin-left: 20px;
 }
 .chart-container .top {
-    padding-bottom: 10px;
+    padding: 10px 0;
     border-bottom: solid 1px #222222;
 }
 #stock-sentiment-chart {
+    display: inline-block;
     width: 700px;
     height: 400px;
     border-right: solid 1px #222222;
+}
+.wb-container{
+    display: inline-block;
+    width: 320px;
+    vertical-align: top;
+    padding-left: 10px;
+}
+.h3 {
+    margin: 20px 0;
+    font-size: 1.6rem;
+    font-weight: 100;
+    color: #ffffff;
+}
+.subtitle-wb {
+    font-size: 1.4rem;
+    color: #69bfde;
+}
+.subtitle-wb .title-topic {
+    display: inline-block;
+    width: 160px;
+}
+.subtitle-wb .title-sentiment {
+    display: inline-block;
+    width: 70px;
+}
+.subtitle-wb .title-stock {
+    display: inline-block;
+    width: 70px;
+}
+.wb-list {
+    max-height: 320px;
+    overflow-y: scroll;
+    margin-left: -5px;
+}
+.wb-single {
+    padding: 5px;
+    border-bottom: solid 1px #222222;
+}
+.wb-img {
+    position: relative;
+    float: left;
+    width: 150px;
+    height: 70px;
+    margin-right: 10px;
+    background-color: #2a93f6;
+}
+.wb-img .img-title {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 22px;
+    line-height: 22px;
+    margin: 0;
+    background-color: rgba(0,0,0,.8);
+    font-size: 1.4rem;
+    color: #cccccc;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    white-space: nowrap;
+}
+.wb-sentiment {
+    float: left;
+    width: 70px;
+    padding-top: 10px;
+}
+.wb-stock {
+    float: right;
+    width: 68px;
+    padding-top: 10px;
+    text-align: center;
+    color: #cccccc;
+    font-size: 1.4rem;
+}
+.related-stock-container {
+    padding-left: 20px;
+    width: 340px;
+    margin-right: 40px;
+}
+.related-stock-container .keyword-input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 24px;
+    line-height: 24px;
+    padding-left: 5px;
+    border: solid 1px #333333;
+    background: #1a1a19 url("../images/icon_search.png") no-repeat right 4px;
+    font-size: 0.4rem;
+    color: #cccccc;
+}
+.related-stock-container .keyword-input::-webkit-input-placeholder {
+    color: #555555 !important;
+}
+.related-stock-container .keyword-input:-moz-placeholder {
+    color: #555555 !important;
+}
+.related-stock-container .keyword-input::-moz-placeholder {
+    color: #555555 !important;
+}
+.related-stock-container .keyword-input:-ms-input-placeholder {
+    color: #555555 !important;
+}
+.keyword-container {
+    width: 250px;
+    margin-right: 40px;
+}
+.keyword-container .red {
+    margin-right: 20px;
+    color: #d63b3b;
+}
+.keyword-container .sliver {
+    margin-right: 20px;
+    color: #999999;
+}
+.keyword-container .green{
+    margin-right: 20px;
+    color: #4f803a;
+}
+.rank-container {
+    width: 250px;
+}
+#footer {
+    text-align: center;
+    padding: 6px 0;
+    border-top: solid 4px #111111;
+    color: #555555;
+    font-size: 1.4rem;
+}
+#footer .link {
+    margin-right: 40px;
 }
