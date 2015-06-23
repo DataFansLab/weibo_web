@@ -109,5 +109,98 @@ angular.module("weibo.controllers", [])
         console.log("financialSentiment");
     }])
     .controller('weiboAnalysisCtrl', ["$scope", function ($scope) {
+        $scope.period = 0;
+        // 添加瀑布流数据
+        $scope.pics = [
+            {
+                "title": "1. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
+                "image": "application/resource/images/pic.png",
+                "affectedSector": "金融（1级）贸易（2级）农业（-2级）",
+                "affectedStock": "中国软件（1级）"
+            },
+            {
+                "title": "2. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
+                "image": "application/resource/images/pic.png",
+                "affectedSector": "金融（1级）贸易（2级）农业（-2级）",
+                "affectedStock": "中国软件（1级）"
+            },
+            {
+                "title": "3. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
+                "image": "application/resource/images/pic.png",
+                "affectedSector": "金融（1级）贸易（2级）农业（-2级）",
+                "affectedStock": "中国软件（1级）"
+            },
+            {
+                "title": "4. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
+                "image": "application/resource/images/pic.png",
+                "affectedSector": "金融（1级）贸易（2级）农业（-2级）",
+                "affectedStock": "中国软件（1级）"
+            }
+        ];
+        // 万以上的就精确到万，万以下的就精确到个位
+        $scope.rankUp = [
+            {
+                "stockName": "招商银行",
+                "effect": 310000,
+                "emotion": 50,
+                "topics": "P2P 金融 利率"
+            },
+            {
+                "stockName": "中国银行",
+                "effect": 2900000,
+                "emotion": 100,
+                "topics": "P2P 金融 利率"
+            },
+            {
+                "stockName": "工商银行",
+                "effect": 600000,
+                "emotion": 80,
+                "topics": "P2P 金融 利率"
+            }
+        ];
+        $scope.rankDown = [
+            {
+                "stockName": "招商银行",
+                "effect": 310000,
+                "emotion": -50,
+                "topics": "P2P 金融 利率"
+            },
+            {
+                "stockName": "中国银行",
+                "effect": 2900000,
+                "emotion": -100,
+                "topics": "P2P 金融 利率"
+            },
+            {
+                "stockName": "工商银行",
+                "effect": 600000,
+                "emotion": -80,
+                "topics": "P2P 金融 利率"
+            }
+        ];
         console.log("weiboAnalysisCtrl");
-    }]);
+    }])
+    .filter('emotion', function() {
+        return function(input) {
+            var direction = "up";
+            var base = 20;
+            var qty;
+
+            if (input < 0) direction = "down";
+            input = Math.abs(input);
+            switch (parseInt(input / base)) {
+                case 1: qty = "one"; break;
+                case 2: qty = "two"; break;
+                case 3: qty = "three"; break;
+                case 4: qty = "four"; break;
+                case 5: qty = "five"; break;
+            }
+            return "emotion " + direction + " " + qty;
+        };
+    })
+    .filter('effect', function() {
+        return function(input) {
+            if (input > 10000) input = parseInt(input / 10000) + '万';
+            return input;
+        };
+    });

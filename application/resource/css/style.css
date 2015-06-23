@@ -6,8 +6,13 @@
 */
 
 /* --- 公用部分 --- */
+*, :after, :before {
+    box-sizing: inherit;
+}
+
 html {
     font-size: 62.5%;
+    box-sizing: border-box;
 }
 
 body {
@@ -91,18 +96,18 @@ ul {
     width: 100%;
     vertical-align: top;
 }
-.right-container .bar {
+.bar {
     padding: 6px 25px;
     background-color: #2b2a2a;
 }
-.right-container .bar li {
+.bar li {
     display: inline-block;
     margin-right: 30px;
     color: #999999;
     font-size: 1.4rem;
     cursor: pointer;
 }
-.right-container .bar li.active {
+.bar li.active {
     color: #327cc0;
 }
 .chart-container {
@@ -117,3 +122,109 @@ ul {
     height: 400px;
     border-right: solid 1px #222222;
 }
+
+/*-- weibo analysis --*/
+.weibo.analysis.bar li {
+    margin-right: 60px;
+}
+.ui.grid.weibo.analysis {
+    padding-left: 15px;
+    width: 1440px;
+    margin-top: 5px;
+}
+.ui.grid.weibo.analysis .column.left {
+    width: 1000px;
+}
+.ui.grid.weibo.analysis .column.right {
+    width: 410px;
+    padding-left: 40px;
+}
+.ui.grid.weibo.analysis table,
+.ui.grid.weibo.analysis div.affect,
+.ui.grid.weibo.analysis div.title{
+    color: #CCCCCC !important;
+    font-size: 1.4rem;
+    line-height: 18px;
+}
+.ui.grid.pics .column {
+    padding: 5px 5px 5px 5px !important;
+    width: 240px;
+}
+.ui.box {
+    box-sizing: content-box;
+    padding: 10px 10px 10px 10px;
+    background-color: #2B2A2A;
+    width: 220px;
+    height: 277px;
+}
+.ui.box .inner-box {
+    height: 170px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+.inner-box .title {
+    width: 200px;
+    padding: 5px 10px 5px 10px;
+    position: absolute;
+    bottom: 122px;
+    background: rgba(0, 0, 0, 0.7);
+}
+.ui.box .affect {
+    height: 55px;
+}
+.ui.box .affect span.label {
+    color: #69bfde;
+}
+.weibo.analysis table {
+    background-color: transparent !important;
+}
+.weibo.analysis table.up {
+    margin-bottom: 40px;
+}
+.weibo.analysis table th {
+    padding: 5px 0 5px 0 !important;
+    border-bottom: none !important;
+    font-weight: normal !important;
+    font-size: 1.4rem;
+    color: #69bfde !important;
+}
+.weibo.analysis table td{
+    border-top: none !important;
+    border-bottom: 1px solid #222222 !important;
+    padding: 5px 0 5px 0 !important;
+}
+.weibo.analysis table th.rank { width: 11%; }
+.weibo.analysis table th.stock.name { width: 20%; }
+.weibo.analysis table th.influence { width: 18%; }
+.weibo.analysis table th.emotion { width: 23%; }
+.weibo.analysis table th.topics { width: 28%; }
+.weibo.analysis table td div.rank {
+    text-align: center;
+    background-color: #ca6c2c;
+    height: 18px;
+    width: 18px;
+    border-radius: 3px;
+}
+.weibo.analysis table td div.emotion.up {
+    height: 11px;
+    background-image: url("../images/icon_up.png");
+    background-repeat:repeat-x;
+}
+.weibo.analysis table td div.emotion.down {
+    height: 11px;
+    background-image: url("../images/icon_down.png");
+    background-repeat:repeat-x;
+}
+.emotion.one { width: 11px; }
+.emotion.two { width: 22px; }
+.emotion.three { width: 33px; }
+.emotion.four { width: 44px; }
+.emotion.five { width: 55px; }
+.weibo.analysis table td.stock.name {
+    color: #327cc0;
+}
+.table.title {
+    font-size: 1.6rem !important;
+}
+
+
