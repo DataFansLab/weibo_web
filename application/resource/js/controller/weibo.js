@@ -12,6 +12,54 @@ angular.module("weibo.controllers", [])
         };
         $scope.period = 0;
 
+        $scope.stockList = [
+            {name: "中国软件", id: 232345},
+            {name: "中国银行", id: 132345},
+            {name: "中国石油", id: 432345},
+            {name: "浦发银行", id: 265645},
+            {name: "中国软件", id: 100000}
+        ];
+
+        $scope.relatedWeibo = [{
+            img_url: "",
+            title: "资金面陷入“一钱难求”",
+            up: 400,
+            down: 200,
+            related: ["美的空调", "格力电器"]
+        }, {
+            img_url: "",
+            title: "资金面陷入“一钱难求”",
+            up: 300,
+            down: 20,
+            related: ["美的空调", "格力电器"]
+        },{
+            img_url: "",
+            title: "联通电商部总经理巴拉拉",
+            up: 200,
+            down: 50,
+            related: ["中国石化","中国石油"]
+        },  {
+            img_url: "",
+            title: "联通电商部总经理巴拉拉",
+            up: 200,
+            down: 50,
+            related: ["中国石化","中国石油"]
+        },  {
+            img_url: "",
+            title: "联通电商部总经理巴拉拉",
+            up: 200,
+            down: 450,
+            related: ["中国石化","中国石油"]
+        }];
+        
+        $scope.SNSKeyword = [{keyword: "央企改革"}, {keyword: "互联网金融"}, {keyword: "互联网金融"}, {keyword: "银行"}, {keyword: "税改"}, {keyword: "一带一路"}, {keyword: "以房养老"}];
+        $scope.SNSKeyword.forEach(function(item, index){
+            var colors = ["sliver", "red", "green"],
+                font = ["font14", "font16", "font24"];
+            var i = index % 3;
+            item.classes = colors[i] + " " + font[i];
+        });
+
         (function(){
             require.config({
                 paths: {
@@ -104,7 +152,32 @@ angular.module("weibo.controllers", [])
                 }
             );
         })();
+
+
     }])
+    .filter('sentimentFilter', function () {
+        return function(value, index, trend){
+            var starNum = 0;
+            var dom;
+            trend == "up" ? dom = "<img src='application/resource/images/icon_up.png'>" : dom = "<img src='application/resource/images/icon_down.png'>";
+
+            if(value >= 0 && value <= 50)
+                starNum = 1;
+            else if(value <= 100)
+                starNum = 2;
+            else if(value <= 200)
+                starNum = 3;
+            else if(value <= 350)
+                starNum = 4;
+            else
+                starNum = 5;
+
+            for(var count = 0; count < starNum; count ++) {
+                $(".wb-sentiment:eq(" + index + ")").append(dom);
+            }
+            $(".wb-sentiment:eq(" + index + ")").append("<br>");
+        };
+    })
     .controller('financialSentimentCtrl', ["$scope", function ($scope) {
         console.log("financialSentiment");
     }])

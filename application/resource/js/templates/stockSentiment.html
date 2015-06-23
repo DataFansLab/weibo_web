@@ -1,20 +1,13 @@
-<div class="container">
+<div class="container clearfix">
     <div class="list">
         <ul>
             <li class="item add-stock">
-                <p class="stock-name">添加股票</p>
+                <p class="stock-name"><img src="application/resource/images/icon_add.png" class="icon-add">添加股票</p>
             </li>
-            <li class="item">
-                <p class="stock-name">中国软件</p>
-                <p class="stock-id">60000</p>
-            </li>
-            <li class="item">
-                <p class="stock-name">浦发银行</p>
-                <p class="stock-id">60000</p>
-            </li>
-            <li class="item">
-                <p class="stock-name">南京银行</p>
-                <p class="stock-id">60000</p>
+            <li class="item" ng-repeat="stock in stockList">
+                <p class="stock-name">{{stock.name}}</p>
+                <p class="stock-id">{{stock.id}}</p>
+                <img class="delete-icon" src="application/resource/images/icon_delete.png">
             </li>
         </ul>
     </div>
@@ -30,7 +23,40 @@
         <div class="chart-container">
             <div class="top">
                 <div id="stock-sentiment-chart"></div>
+                <div class="wb-container">
+                    <h3 class="h3">关联微博</h3>
+                    <p class="subtitle-wb">
+                        <span class="title-topic">话题</span>
+                        <span class="title-sentiment">话题情感</span>
+                        <span class="title-stock">相关股票</span>
+                    </p>
+                    <ul class="wb-list">
+                        <li class="wb-single clearfix" ng-repeat="weibo in relatedWeibo">
+                            <div class="wb-img">
+                                <p class="img-title">{{ weibo.title }}</p>
+                            </div>
+                            <div class="wb-sentiment">
+                                {{ weibo.up | sentimentFilter:$index:"up" }}
+                                {{ weibo.down | sentimentFilter:$index:"down" }}
+                            </div>
+                            <div class="wb-stock">
+                                <p class="mr0" ng-repeat="stock in weibo.related">{{stock}}</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
+    </div>
+    <div class="pull-left related-stock-container">
+        <h3 class="h3">关联股票网</h3>
+        <input class="keyword-input" placeholder="请输入关键词，查阅该事件对贵州茅台的影响度"/>
+    </div>
+    <div class="pull-left keyword-container">
+        <h3 class="h3">社交关键词</h3>
+        <span ng-repeat="keyword in SNSKeyword" class="inline-block" ng-class="keyword.classes">{{ keyword.keyword }}</span>
+    </div>
+    <div class="pull-left rank-container">
+        <h3 class="h3">关注度排名</h3>
     </div>
 </div>
