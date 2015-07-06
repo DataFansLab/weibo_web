@@ -197,9 +197,56 @@ define(function (require) {
             // 节点标签样式
             if (this.deepQuery(queryTarget, 'itemStyle.normal.label.show')) {
                 shape.style.text = treeNode.data.label == null ? treeNode.id : treeNode.data.label;
-                shape.style.textPosition = this.deepQuery(
-                    queryTarget, 'itemStyle.normal.label.position'
-                );
+                shape.style.textPosition = treeNode.data.labelPosition;
+                var emotion = treeNode.data.emotion;
+                var labelPosition = shape.style.textPosition;
+                // 画emotion
+                if (emotion) {
+                    // 添加icon
+                    var base = 10;
+                    var nums = parseInt(Math.abs(emotion) / base);
+                    var imgUrl = 'application/resource/images/icon_up.png';
+                    if (emotion < 0) imgUrl = 'application/resource/images/icon_down.png';
+                    var baseX, baseY, offset;
+                    switch (labelPosition) {
+                        case 'right': {
+                            offset = (shape.style.text.length + 1) * 15;
+                            baseX = treeNode.layout.position[0] + offset;
+                            baseY = treeNode.layout.position[1] - 5;
+                            break;
+                        }
+                        case 'top': {
+                            offset = shape.style.text.length * 20;
+                            baseX = treeNode.layout.position[0] + offset * 0.4;
+                            baseY = treeNode.layout.position[1] - treeNode.layout.height - 20;
+                            break;
+                        }
+                        case 'bottom': {
+                            offset = shape.style.text.length * 20;
+                            baseX = treeNode.layout.position[0] + offset * 0.4;
+                            baseY = treeNode.layout.position[1] + treeNode.layout.height + 10;
+                            break;
+                        }
+                        case 'left': {
+                            offset = (shape.style.text.length + 1) * 15;
+                            baseX = treeNode.layout.position[0] - offset - 10;
+                            baseY = treeNode.layout.position[1] - 5;
+                            break;
+                        }
+                    }
+                    if (labelPosition) {
+                        for (var i = 0; i < nums; i++) {
+                            var icon = new ImageShape({
+                                style: {
+                                    image: imgUrl,
+                                    x: (labelPosition == 'left') ? baseX - 14 * i : baseX + 14 * i,
+                                    y: baseY
+                                }
+                            });
+                            this.shapeList.push(icon);
+                        }
+                    }
+                }
                 // 极坐标另外计算 时钟哪个侧面
                 if (serie.orient === 'radial' && shape.style.textPosition !== 'inside') {
                     shape.style.textPosition = textPosition;
