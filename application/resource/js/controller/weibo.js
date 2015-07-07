@@ -63,96 +63,238 @@ angular.module("weibo.controllers", [])
         (function(){
             require.config({
                 paths: {
-                    //echarts: 'http://echarts.baidu.com/build/dist'
-                    echarts: 'application/resource/plugins/echarts'
+                    echarts: "application/resource/plugins/echarts"
                 }
             });
-
-            // 使用
-            require(
-                [
-                    'echarts',
-                    'echarts/chart/line' // 使用柱状图就加载bar模块，按需加载
-                ],
-                function (ec) {
-                    // 基于准备好的dom，初始化echarts图表
-                    var myChart = ec.init(document.getElementById('stock-sentiment-chart'));
-
-                    option = {
-                        title : {
-                            text: '未来一周气温变化',
-                            subtext: '纯属虚构'
-                        },
-                        tooltip : {
-                            trigger: 'axis'
-                        },
-                        legend: {
-                            data:['最高气温','最低气温']
-                        },
-                        calculable : true,
-                        xAxis : [
-                            {
-                                type : 'category',
-                                boundaryGap : false,
-                                data : ['周一','周二','周三','周四','周五','周六','周日'],
-                                show: false
+            require([
+                'echarts',
+                'echarts/chart/line',
+                'echarts/chart/eventRiver'
+            ], function(ec) {
+                var ecConfig = require("echarts/config");
+                var weiboCountChart = ec.init(document.getElementById("weibo-count-chart"));
+                var sentimentChart = ec.init(document.getElementById("sentiment-chart"));
+                var data = {};
+                var weiboCountOption = {
+                    tooltip: {
+                        trigger: "axis",
+                        showDelay: 0,
+                        borderRadius: 0,
+                        borderWidth: 1,
+                        borderColor: "#504026",
+                        backgroundColor: "#242322",
+                        textStyle: {fontSize: "10"},
+                        axisPointer: {
+                            type: "line",
+                            lineStyle: {
+                                color: "#666666",
+                                type: "dashed",
+                                width: 2
                             }
-                        ],
-                        yAxis : [
-                            {
-                                type : 'value',
-                                axisLabel : {
-                                    formatter: '{value} °C'
-                                },
-                                show: false
+                        },
+                        formatter: function (params) {
+                            return params[0].name + ':<br><span style="color:#f9b03c">' + params[0].seriesName + '： </span>' + params[0].value
+                            + '<br>\
+                            <span style="color:#327cc0">' + params[1].seriesName + '： </span>' + params[1].value;
+                        }
+                    },
+                    legend: {
+                     y: -100,
+                     data: ['微博数', '影响度']
+                    },
+                    grid: {
+                        x: 50,
+                        y: 5,
+                        x2: 50,
+                        y2: 20,
+                        borderWidth: 0
+                        //borderColor: "#171716"
+                    },
+                    xAxis: [{
+                        type: "category",
+                        position: "bottom",
+                        data: ["2015-06-2", "2015-06-03", "2015-06-04", "2015-06-05", "2015-06-06", "2015-06-07", "2015-06-08"],
+                        axisLine: {
+                            lineStyle: {
+                                color: "#333333",
+                                width: 1
                             }
-                        ],
-                        series : [
-                            {
-                                name:'最高气温',
-                                type:'line',
-                                data:[11, 11, 15, 13, 12, 13, 10],
-                                markPoint : {
-                                    data : [
-                                        {type : 'max', name: '最大值'},
-                                        {type : 'min', name: '最小值'}
-                                    ]
-                                },
-                                markLine : {
-                                    data : [
-                                        {type : 'average', name: '平均值'}
-                                    ]
-                                },
-                                itemStyle: {normal: {
-                                    lineStyle: {
-                                        width: 1
-                                    },
-                                    areaStyle: {type: 'default'}
-                                }}
-                            },
-                            {
-                                name:'最低气温',
-                                type:'line',
-                                data:[1, -2, 2, 5, 3, 2, 0],
-                                markPoint : {
-                                    data : [
-                                        {name : '周最低', value : -2, xAxis: 1, yAxis: -1.5}
-                                    ]
-                                },
-                                markLine : {
-                                    data : [
-                                        {type : 'average', name : '平均值'}
-                                    ]
+                        },
+                        axisTick: {
+                            show: false
+                        },
+                        axisLabel: {
+                            textStyle: {color: "#ccc"}
+                        },
+                        splitLine: {show: false}
+                    }],
+                    yAxis: [{
+                        type: "value",
+                        show: true,
+                        axisLine: {
+                            show: false
+                        },
+                        axisLabel: {
+                            textStyle: {color: "#ccc"}
+                        },
+                        splitLine: {
+                            show: true,
+                            lineStyle: {
+                                color: "#333333",
+                                width: 1
+                            }
+                        },
+                        splitNumber: 7
+                    },{
+                         show:true,
+                         axisLine: {
+                         show: false
+                         },
+                         axisLabel: {
+                         textStyle: { color: "#ccc"}
+                         },
+                         splitLine: {
+                         show: true,
+                         lineStyle: {
+                         color: "#333333",
+                         width: 1
+                         }
+                         },
+                         splitNumber: 7
+                    }
+                    ],
+                    series: [{
+                        type: "line",
+                        symbol: "none",
+                        data: [2, 3, 1, 23, 12, 7, 23],
+                        name: "微博数",
+                        itemStyle: {
+                            normal: {
+                                color: "#f9b03c",
+                                lineStyle: { width: 1 },
+                                areaStyle: {
+                                    color: (function (){
+                                        var zrColor = require('zrender/tool/color');
+                                        return zrColor.getLinearGradient(
+                                            0, 200, 0, 400,
+                                            [[0, 'rgba(249,176,60,0.1)'],[0.8, 'rgba(255,255,255,0)']]
+                                        )
+                                    })()
                                 }
                             }
-                        ]
-                    };
-                    // 为echarts对象加载数据
-                    myChart.setOption(option);
-                }
-            );
-        })();
+                        }
+                    },{
+                        type: "line",
+                        symbol: "none",
+                        yAxisIndex: 1,
+                        data:[2000,300,1200,200,500,342,523],
+                        name: "关注度",
+                        itemStyle: {
+                            normal: {
+                                lineStyle: { width: 1 },
+                                color: "#327cc0"
+                            }
+                        }
+                    }
+                    ]
+                };
+                var sentimentOption = {
+                    tooltip: {
+                        trigger: "axis",
+                        showDelay: 0,
+                        borderRadius: 0,
+                        borderWidth: 1,
+                        borderColor: "#504026",
+                        backgroundColor: "#242322",
+                        textStyle: {fontSize: "10"},
+                        axisPointer: {
+                            type: "line",
+                            lineStyle: {
+                                color: "#666666",
+                                type: "dashed",
+                                width: 2
+                            }
+                        },
+                        formatter: function (params) {
+                            return params[0].name + ':<br><span style="color:#a455a9">' + params[0].seriesName + '： </span>' + params[0].value;
+                        }
+                    },
+                    grid: {
+                        backgroundColor: "#1b2129",
+                        x: 50,
+                        y: 5,
+                        x2: 50,
+                        y2: 20,
+                        borderWidth: 0
+                    },
+                    xAxis: [{
+                        show: false,
+                        axisLine: {
+                            show: false
+                        },
+                        data: ["2015-06-2", "2015-06-03", "2015-06-04", "2015-06-05", "2015-06-06", "2015-06-07", "2015-06-08"]
+                    }],
+                    yAxis: [{
+                        min: -100,
+                        max: 100,
+                        type: "value",
+                        show: true,
+                        axisLine: {
+                            show: false
+                        },
+                        axisLabel: {
+                            textStyle: {color: "#ccc"}
+                        },
+                        splitLine: {
+                            show: true,
+                            lineStyle: {
+                                color: "#333333",
+                                width: 1
+                            }
+                        },
+                        splitArea: {
+                            show: true,
+                            areaStyle: {
+                                color: [
+                                    "#2f1e1c",
+                                    "#1b2129"
+                                ]
+                            }
+                        },
+                        splitNumber: 2
+                    }],
+                    series: [{
+                        type: "line",
+                        name: "情感值",
+                        symbol: "none",
+                        data: [20, -23, -51, 23, 12, 77, 23],
+                        itemStyle: {
+                            normal: {
+                                color: "#a455a9",
+                                lineStyle: { width: 1 }
+                            }
+                        }
+                    }]
 
+                }
+
+                console.log(ecConfig);
+                //console.log(sentimentChart.on);
+                function handler(param) {
+                    console.log(param);
+                    console.log("clicked");
+                    sentimentChart.showTip();
+                }
+                sentimentChart.on(ecConfig.EVENT.CLICK, handler);
+
+                weiboCountChart.setOption(weiboCountOption);
+                sentimentChart.setOption(sentimentOption, true);
+
+                //weiboCountChart.connect([sentimentChart]);
+                //sentimentChart.connect([weiboCountChart]);
+
+            });
+        })();
 
     }])
     .filter('sentimentFilter', function () {
