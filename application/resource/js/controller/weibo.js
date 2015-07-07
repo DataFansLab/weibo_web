@@ -322,13 +322,198 @@ angular.module("weibo.controllers", [])
     })
     .controller('financialSentimentCtrl', ["$scope", function ($scope) {
         console.log("financialSentiment");
-    }])
-    .controller('weiboAnalysisCtrl', ["$scope", function ($scope) {
-        $scope.period = 0;
-        // 添加瀑布流数据
-        $scope.pics = [
-            {
-                "title": "1. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
+        (function() {
+            require.config({
+                paths: {
+                    echarts: 'application/resource/plugins/echarts' ,
+                    zrender: 'application/resource/plugins/zrender'
+                }
+                //paths: { echarts: 'http://echarts.baidu.com/build/dist' }
+            });
+
+            // 使用
+            require(
+                [
+                    'echarts',
+                    'echarts/chart/tree'
+                ],
+                function (ec) {
+                    // 基于准备好的dom，初始化echarts图表
+                    var rn = ec.init(document.getElementById('relationship-network'));
+                    var option = {
+                        title : {
+                            text: '关联股票网'
+                        },
+                        calculable : false,
+
+                        series : [
+                            {
+                                name:'树图',
+                                type:'tree',
+                                direction: 'inverse',
+                                orient: 'horizontal',  // vertical horizontal
+                                rootLocation: {x: 230,y: 'center'}, // 根节点位置  {x: 100, y: 'center'},
+                                layerPadding: 70,
+                                nodePadding: 70,
+                                symbolSize: 10,
+                                itemStyle: {
+                                    normal: {
+                                        label: {
+                                            show: true,
+                                            formatter: "{b}",
+                                            textStyle: {
+                                                fontSize: 14,
+                                                color: '#cccccc'
+                                            }
+                                        },
+                                        lineStyle: {
+                                            color: '#cccccc',
+                                            shadowColor: '#000',
+                                            shadowBlur: 3,
+                                            shadowOffsetX: 3,
+                                            shadowOffsetY: 5,
+                                            type: 'curve' // 'curve'|'broken'|'solid'|'dotted'|'dashed'
+
+                                        }
+                                    },
+                                    emphasis: {
+                                        label: {
+                                            show: true,
+                                            textStyle: {
+                                                fontSize: 14,
+                                                color: '#cccccc'
+                                            }
+                                        }
+                                    }
+                                },
+
+                                data: [
+                                    {
+                                        name: '根节点',
+                                        value: 6,
+                                        children: [
+                                            {
+                                                name: '节点啊啊',
+                                                value: 4,
+                                                emotion: 20,
+                                                labelPosition: 'left'
+                                            },
+                                            {
+                                                name: '节点啊啊啊',
+                                                value: 4,
+                                                emotion: -30,
+                                                labelPosition: 'left'
+                                            },
+                                            {
+                                                name: '节点',
+                                                value: 1,
+                                                emotion: 40,
+                                                labelPosition: 'left'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            },
+                            {
+                                name:'树图',
+                                type:'tree',
+                                orient: 'horizontal',  // vertical horizontal
+                                rootLocation: {x: 230,y: 'center'}, // 根节点位置  {x: 100, y: 'center'}
+                                layerPadding: 200,
+                                nodePadding: 25,
+                                symbolSize: 10,
+                                itemStyle: {
+                                    normal: {
+                                        label: {
+                                            show: true,
+                                            formatter: "{b}",
+                                            textStyle: {
+                                                fontSize: 14,
+                                                color: '#cccccc'
+                                            }
+                                        },
+                                        lineStyle: {
+                                            color: '#cccccc',
+                                            shadowColor: '#000',
+                                            shadowBlur: 3,
+                                            shadowOffsetX: 3,
+                                            shadowOffsetY: 5,
+                                            type: 'curve' // 'curve'|'broken'|'solid'|'dotted'|'dashed'
+
+                                        }
+                                    },
+                                    emphasis: {
+                                        label: {
+                                            show: true,
+                                            textStyle: {
+                                                fontSize: 14,
+                                                color: '#cccccc'
+                                            }
+                                        }
+                                    }
+                                },
+
+                                data: [
+                                    {
+                                        name: '',
+                                        value: 6,
+                                        children: [
+                                            {
+                                                name: '节点啊啊',
+                                                value: 4,
+                                                emotion: 20,
+                                                labelPosition: 'right'
+                                            },
+                                            {
+                                                name: '节点啊啊啊',
+                                                value: 4,
+                                                emotion: -30,
+                                                labelPosition: 'right'
+                                            },
+                                            {
+                                                name: '节点',
+                                                value: 1,
+                                                emotion: 40,
+                                                labelPosition: 'right'
+                                            },
+                                            {
+                                                name: '节点啊',
+                                                value: 1,
+                                                emotion: -10,
+                                                labelPosition: 'right'
+                                            },
+                                            {
+                                                name: '节点啊',
+                                                value: 1,
+                                                emotion: -10,
+                                                labelPosition: 'right'
+                                            },
+                                            {
+                                                name: '节点啊',
+                                                value: 1,
+                                                emotion: -10,
+                                                labelPosition: 'right'
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    };
+                require(['application/resource/plugins/echarts/theme/dark'], function(tarTheme){
+                    rn.setTheme(tarTheme);
+                })
+                rn.setOption(option);
+    }
+)
+})();
+}])
+.controller('weiboAnalysisCtrl', ["$scope", function ($scope) {
+    $scope.period = 0;
+    // 添加瀑布流数据
+    $scope.pics = [
+        {
+            "title": "1. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
                 "image": "application/resource/images/pic.png",
                 "affectedSector": "金融（1级）贸易（2级）农业（-2级）",
                 "affectedStock": "中国软件（1级）"

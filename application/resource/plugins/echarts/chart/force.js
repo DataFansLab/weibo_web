@@ -1,65 +1,93 @@
-define('echarts/chart/force', [
-    'require',
-    './base',
-    '../data/Graph',
-    '../layout/Force',
-    'zrender/shape/Line',
-    'zrender/shape/BezierCurve',
-    'zrender/shape/Image',
-    '../util/shape/Icon',
-    '../config',
-    '../util/ecData',
-    'zrender/tool/util',
-    'zrender/config',
-    'zrender/tool/vector',
-    '../chart'
-], function (require) {
+/**
+ * echarts图表类：力导向图
+ *
+ * @author pissang (https://github.com/pissang/)
+ *
+ */
+
+define(function (require) {
     'use strict';
+    
     var ChartBase = require('./base');
+
     var Graph = require('../data/Graph');
     var ForceLayout = require('../layout/Force');
+    
+    // 图形依赖
     var LineShape = require('zrender/shape/Line');
     var BezierCurveShape = require('zrender/shape/BezierCurve');
     var ImageShape = require('zrender/shape/Image');
     var IconShape = require('../util/shape/Icon');
+
     var ecConfig = require('../config');
+    // 力导向布局图默认参数
     ecConfig.force = {
-        zlevel: 1,
-        z: 2,
-        center: [
-            '50%',
-            '50%'
-        ],
+        zlevel: 1,                  // 一级层叠
+        z: 2,                       // 二级层叠
+        // 布局中心
+        center: ['50%', '50%'],
+
+        // 布局大小
         size: '100%',
+
+        // 防止节点和节点，节点和边之间的重叠
         preventOverlap: false,
+        
+        // 布局冷却因子，值越小结束时间越短，值越大时间越长但是结果也越收敛
         coolDown: 0.99,
+        
+        // 数据映射到圆的半径的最小值和最大值
         minRadius: 10,
         maxRadius: 20,
+
+        // 是否根据屏幕比例拉伸
         ratioScaling: false,
+
+        // 在 500+ 顶点的图上建议设置 large 为 true, 会使用 Barnes-Hut simulation
+        // 同时开启 useWorker 并且把 steps 值调大
+        // 关于Barnes-Hut simulation: http://en.wikipedia.org/wiki/Barnes–Hut_simulation
         large: false,
+
+        // 是否在浏览器支持 worker 的时候使用 web worker
         useWorker: false,
+        // 每一帧 force 迭代的次数，仅在启用webworker的情况下有用
         steps: 1,
-        scaling: 1,
+
+        // 布局缩放因子，并不完全精确, 效果跟布局大小类似
+        scaling: 1.0,
+
+        // 向心力因子，越大向心力越大（ 所有顶点会往 center 的位置收拢 )
         gravity: 1,
+
         symbol: 'circle',
+        // symbolSize 为 0 的话使用映射到minRadius-maxRadius后的值
         symbolSize: 0,
+
         linkSymbol: null,
-        linkSymbolSize: [
-            10,
-            15
-        ],
+        linkSymbolSize: [10, 15],
         draggable: true,
         clickable: true,
+
         roam: false,
+
+        // 分类里如果有样式会覆盖节点默认样式
+        // categories: [{
+            // itemStyle
+            // symbol
+            // symbolSize
+            // name
+        // }],
         itemStyle: {
             normal: {
+                // color: 各异,
                 label: {
                     show: false,
                     position: 'inside'
+                    // textStyle: null      // 默认使用全局文本样式，详见TEXTSTYLE
                 },
                 nodeStyle: {
-                    brushType: 'both',
-                    borderColor: '#5182ab',
+                    brushType : 'both',
+                    borderColor : '#5182ab',
                     borderWidth: 1
                 },
                 linkStyle: {
@@ -69,113 +97,195 @@ define('echarts/chart/force', [
                 }
             },
             emphasis: {
-                label: { show: false },
+                // color: 各异,
+                label: {
+                    show: false
+                    // textStyle: null      // 默认使用全局文本样式，详见TEXTSTYLE
+                },
                 nodeStyle: {},
-                linkStyle: { opacity: 0 }
+                linkStyle: {
+                    opacity: 0
+                }
             }
         }
+        // nodes: [{
+        //     name: 'xxx',
+        //     value: 1,
+        //     itemStyle: {},
+        //     initial: [0, 0],
+        //     fixX: false,
+        //     fixY: false,
+        //     ignore: false,
+        //     symbol: 'circle',
+        //     symbolSize: 0
+        // }]
+        // links: [{
+        //      source: 1,
+        //      target: 2,
+        //      weight: 1,
+        //      itemStyle: {}
+        // }, {
+        //      source: 'xxx',
+        //      target: 'ooo'
+        // }]
     };
+    
     var ecData = require('../util/ecData');
     var zrUtil = require('zrender/tool/util');
     var zrConfig = require('zrender/config');
     var vec2 = require('zrender/tool/vector');
+
+    /**
+     * 构造函数
+     * @param {Object} messageCenter echart消息中心
+     * @param {ZRender} zr zrender实例
+     * @param {Object} series 数据
+     * @param {Object} component 组件
+     */
     function Force(ecTheme, messageCenter, zr, option, myChart) {
         var self = this;
+        // 图表基类
         ChartBase.call(this, ecTheme, messageCenter, zr, option, myChart);
+
+        // 保存节点的位置，改变数据时能够有更好的动画效果
         this.__nodePositionMap = {};
+
         this._graph = new Graph(true);
         this._layout = new ForceLayout();
-        this._layout.onupdate = function () {
+
+        this._layout.onupdate = function() {
             self._step();
         };
+
         this._steps = 1;
-        this.ondragstart = function () {
+
+        // 关闭可拖拽属性
+        this.ondragstart = function() {
             ondragstart.apply(self, arguments);
         };
-        this.ondragend = function () {
+        this.ondragend = function() {
             ondragend.apply(self, arguments);
         };
-        this.ondrop = function () {
-        };
-        this.shapeHandler.ondragstart = function () {
+        this.ondrop = function() {};
+        this.shapeHandler.ondragstart = function() {
             self.isDragstart = true;
         };
-        this.onmousemove = function () {
+        this.onmousemove = function() {
             onmousemove.apply(self, arguments);
         };
+
         this.refresh(option);
     }
+
+    /**
+     * 绘制图形
+     */
     Force.prototype = {
+
         constructor: Force,
-        type: ecConfig.CHART_TYPE_FORCE,
-        _init: function () {
+
+        type : ecConfig.CHART_TYPE_FORCE,
+
+        _init: function() {
+            this.selectedMap = {};
             var legend = this.component.legend;
             var series = this.series;
             var serieName;
+
             this.clear();
+
             for (var i = 0, l = series.length; i < l; i++) {
                 var serie = series[i];
                 if (serie.type === ecConfig.CHART_TYPE_FORCE) {
                     series[i] = this.reformOption(series[i]);
                     serieName = series[i].name || '';
-                    this.selectedMap[serieName] = legend ? legend.isSelected(serieName) : true;
+                    
+                    // 系列图例开关
+                    this.selectedMap[serieName] = 
+                        legend ? legend.isSelected(serieName) : true;
                     if (!this.selectedMap[serieName]) {
                         continue;
                     }
+
                     this.buildMark(i);
+                    
+                    // TODO 多个 force 
                     this._initSerie(serie, i);
                     break;
                 }
             }
+
             this.animationEffect();
         },
+
         _getNodeCategory: function (serie, node) {
             return serie.categories && serie.categories[node.category || 0];
         },
+
         _getNodeQueryTarget: function (serie, node, type) {
             type = type || 'normal';
             var category = this._getNodeCategory(serie, node) || {};
             return [
+                // Node
                 node.itemStyle && node.itemStyle[type],
+                // Category
                 category && category.itemStyle && category.itemStyle[type],
+                // Serie
                 serie.itemStyle[type].nodeStyle
             ];
         },
+
         _getEdgeQueryTarget: function (serie, edge, type) {
             type = type || 'normal';
             return [
-                edge.itemStyle && edge.itemStyle[type],
+                (edge.itemStyle && edge.itemStyle[type]),
                 serie.itemStyle[type].linkStyle
             ];
         },
-        _initSerie: function (serie, serieIdx) {
+
+        _initSerie: function(serie, serieIdx) {
             this._temperature = 1;
-            if (serie.data) {
+
+            // matrix 表示边
+            if (serie.matrix) {
                 this._graph = this._getSerieGraphFromDataMatrix(serie);
-            } else {
+            }
+            // links 表示边
+            else if (serie.links) {
                 this._graph = this._getSerieGraphFromNodeLinks(serie);
             }
+
             this._buildLinkShapes(serie, serieIdx);
             this._buildNodeShapes(serie, serieIdx);
+
             var panable = serie.roam === true || serie.roam === 'move';
             var zoomable = serie.roam === true || serie.roam === 'scale';
+            // Enable pan and zooom
             this.zr.modLayer(this.getZlevelBase(), {
                 panable: panable,
                 zoomable: zoomable
             });
-            if (this.query('markPoint.effect.show') || this.query('markLine.effect.show')) {
+
+            if (
+                this.query('markPoint.effect.show')
+                || this.query('markLine.effect.show')
+            ) {
                 this.zr.modLayer(ecConfig.EFFECT_ZLEVEL, {
                     panable: panable,
                     zoomable: zoomable
                 });
             }
+
             this._initLayout(serie);
+
             this._step();
         },
+
         _getSerieGraphFromDataMatrix: function (serie) {
             var nodesData = [];
             var count = 0;
             var matrix = [];
+            // 复制一份新的matrix
             for (var i = 0; i < serie.matrix.length; i++) {
                 matrix[i] = serie.matrix[i].slice();
             }
@@ -184,26 +294,35 @@ define('echarts/chart/force', [
                 var node = {};
                 var group = data[i];
                 for (var key in group) {
+                    // name改为id
                     if (key === 'name') {
                         node['id'] = group['name'];
-                    } else {
+                    }
+                    else {
                         node[key] = group[key];
                     }
                 }
+                // legends 选择优先级 category -> group
                 var category = this._getNodeCategory(serie, group);
                 var name = category ? category.name : group.name;
+
                 this.selectedMap[name] = this.isSelected(name);
                 if (this.selectedMap[name]) {
                     nodesData.push(node);
                     count++;
-                } else {
+                }
+                else {
+                    // 过滤legend未选中的数据
                     matrix.splice(count, 1);
                     for (var j = 0; j < matrix.length; j++) {
                         matrix[j].splice(count, 1);
                     }
                 }
             }
+
             var graph = Graph.fromMatrix(nodesData, matrix, true);
+
+            // Prepare layout parameters
             graph.eachNode(function (n, idx) {
                 n.layout = {
                     size: n.data.value,
@@ -212,10 +331,14 @@ define('echarts/chart/force', [
                 n.rawIndex = idx;
             });
             graph.eachEdge(function (e) {
-                e.layout = { weight: e.data.weight };
+                e.layout = {
+                    weight: e.data.weight
+                };
             });
+
             return graph;
         },
+
         _getSerieGraphFromNodeLinks: function (serie) {
             var graph = new Graph(true);
             var nodes = serie.data || serie.nodes;
@@ -224,25 +347,28 @@ define('echarts/chart/force', [
                 if (!n || n.ignore) {
                     continue;
                 }
+                // legends 选择优先级 category -> group
                 var category = this._getNodeCategory(serie, n);
                 var name = category ? category.name : n.name;
+
                 this.selectedMap[name] = this.isSelected(name);
                 if (this.selectedMap[name]) {
                     var node = graph.addNode(n.name, n);
                     node.rawIndex = i;
                 }
             }
+
             for (var i = 0, len = serie.links.length; i < len; i++) {
                 var e = serie.links[i];
                 var n1 = e.source;
                 var n2 = e.target;
-                if (typeof n1 === 'number') {
+                if (typeof(n1) === 'number') {
                     n1 = nodes[n1];
                     if (n1) {
                         n1 = n1.name;
                     }
                 }
-                if (typeof n2 === 'number') {
+                if (typeof(n2) === 'number') {
                     n2 = nodes[n2];
                     if (n2) {
                         n2 = n2.name;
@@ -253,10 +379,12 @@ define('echarts/chart/force', [
                     edge.rawIndex = i;
                 }
             }
+
             graph.eachNode(function (n) {
                 var value = n.data.value;
-                if (value == null) {
+                if (value == null) {    // value 是 null 或者 undefined
                     value = 0;
+                    // 默认使用所有边值的和作为节点的大小, 不修改 data 里的数值
                     for (var i = 0; i < n.edges.length; i++) {
                         value += n.edges[i].data.weight || 0;
                     }
@@ -267,20 +395,29 @@ define('echarts/chart/force', [
                 };
             });
             graph.eachEdge(function (e) {
-                e.layout = { weight: e.data.weight == null ? 1 : e.data.weight };
+                e.layout = {
+                    // 默认 weight 为1
+                    weight: e.data.weight == null ? 1 : e.data.weight
+                };
             });
+
             return graph;
         },
-        _initLayout: function (serie) {
+
+        _initLayout: function(serie) {
             var graph = this._graph;
             var len = graph.nodes.length;
+
             var minRadius = this.query(serie, 'minRadius');
             var maxRadius = this.query(serie, 'maxRadius');
+
             this._steps = serie.steps || 1;
+
             var layout = this._layout;
             layout.center = this.parseCenter(this.zr, serie.center);
             layout.width = this.parsePercent(serie.size, this.zr.getWidth());
             layout.height = this.parsePercent(serie.size, this.zr.getHeight());
+
             layout.large = serie.large;
             layout.scaling = serie.scaling;
             layout.ratioScaling = serie.ratioScaling;
@@ -289,8 +426,9 @@ define('echarts/chart/force', [
             layout.coolDown = serie.coolDown;
             layout.preventNodeEdgeOverlap = serie.preventOverlap;
             layout.preventNodeOverlap = serie.preventOverlap;
-            var min = Infinity;
-            var max = -Infinity;
+
+            // 将值映射到minRadius-maxRadius的范围上
+            var min = Infinity; var max = -Infinity;
             for (var i = 0; i < len; i++) {
                 var gNode = graph.nodes[i];
                 max = Math.max(gNode.layout.size, max);
@@ -300,34 +438,45 @@ define('echarts/chart/force', [
             for (var i = 0; i < len; i++) {
                 var gNode = graph.nodes[i];
                 if (divider > 0) {
-                    gNode.layout.size = (gNode.layout.size - min) * (maxRadius - minRadius) / divider + minRadius;
+                    gNode.layout.size = 
+                        (gNode.layout.size - min) * (maxRadius - minRadius) / divider
+                        + minRadius;
+                    // 节点质量是归一的
                     gNode.layout.mass = gNode.layout.size / maxRadius;
                 } else {
                     gNode.layout.size = (maxRadius - minRadius) / 2;
                     gNode.layout.mass = 0.5;
                 }
             }
+
             for (var i = 0; i < len; i++) {
+                // var initPos;
                 var gNode = graph.nodes[i];
-                if (typeof this.__nodePositionMap[gNode.id] !== 'undefined') {
+                if (typeof(this.__nodePositionMap[gNode.id]) !== 'undefined') {
                     gNode.layout.position = vec2.create();
                     vec2.copy(gNode.layout.position, this.__nodePositionMap[gNode.id]);
-                } else if (typeof gNode.data.initial !== 'undefined') {
+                }
+                else if (typeof(gNode.data.initial) !== 'undefined') {
                     gNode.layout.position = vec2.create();
                     vec2.copy(gNode.layout.position, gNode.data.initial);
-                } else {
+                }
+                else {
                     var center = this._layout.center;
                     var size = Math.min(this._layout.width, this._layout.height);
-                    gNode.layout.position = _randomInSquare(center[0], center[1], size * 0.8);
+                    gNode.layout.position = _randomInSquare(
+                        center[0], center[1], size * 0.8
+                    );
                 }
                 var style = gNode.shape.style;
                 var radius = gNode.layout.size;
-                style.width = style.width || radius * 2;
-                style.height = style.height || radius * 2;
+                style.width = style.width || (radius * 2);
+                style.height = style.height || (radius * 2);
                 style.x = -style.width / 2;
                 style.y = -style.height / 2;
                 vec2.copy(gNode.shape.position, gNode.layout.position);
             }
+
+            // 边
             len = graph.edges.length;
             max = -Infinity;
             for (var i = 0; i < len; i++) {
@@ -336,57 +485,70 @@ define('echarts/chart/force', [
                     max = e.layout.weight;
                 }
             }
+            // 权重归一
             for (var i = 0; i < len; i++) {
                 var e = graph.edges[i];
                 e.layout.weight /= max;
             }
+
             this._layout.init(graph, serie.useWorker);
         },
-        _buildNodeShapes: function (serie, serieIdx) {
+
+        _buildNodeShapes: function(serie, serieIdx) {
             var graph = this._graph;
+
             var categories = this.query(serie, 'categories');
+
             graph.eachNode(function (node) {
                 var category = this._getNodeCategory(serie, node.data);
-                var queryTarget = [
-                    node.data,
-                    category,
-                    serie
-                ];
+                var queryTarget = [node.data, category, serie];
                 var styleQueryTarget = this._getNodeQueryTarget(serie, node.data);
-                var emphasisStyleQueryTarget = this._getNodeQueryTarget(serie, node.data, 'emphasis');
+                var emphasisStyleQueryTarget = this._getNodeQueryTarget(
+                    serie, node.data, 'emphasis'
+                );
+
                 var shape = new IconShape({
                     style: {
                         x: 0,
                         y: 0,
                         color: this.deepQuery(styleQueryTarget, 'color'),
                         brushType: 'both',
-                        strokeColor: this.deepQuery(styleQueryTarget, 'strokeColor') || this.deepQuery(styleQueryTarget, 'borderColor'),
-                        lineWidth: this.deepQuery(styleQueryTarget, 'lineWidth') || this.deepQuery(styleQueryTarget, 'borderWidth')
+                        // 兼容原有写法
+                        strokeColor: this.deepQuery(styleQueryTarget, 'strokeColor')
+                            || this.deepQuery(styleQueryTarget, 'borderColor'),
+                        lineWidth: this.deepQuery(styleQueryTarget, 'lineWidth')
+                            || this.deepQuery(styleQueryTarget, 'borderWidth')
                     },
                     highlightStyle: {
                         color: this.deepQuery(emphasisStyleQueryTarget, 'color'),
-                        strokeColor: this.deepQuery(emphasisStyleQueryTarget, 'strokeColor') || this.deepQuery(emphasisStyleQueryTarget, 'borderColor'),
-                        lineWidth: this.deepQuery(emphasisStyleQueryTarget, 'lineWidth') || this.deepQuery(emphasisStyleQueryTarget, 'borderWidth')
+                        // 兼容原有写法
+                        strokeColor: this.deepQuery(emphasisStyleQueryTarget, 'strokeColor')
+                            || this.deepQuery(emphasisStyleQueryTarget, 'borderColor'),
+                        lineWidth: this.deepQuery(emphasisStyleQueryTarget, 'lineWidth')
+                            || this.deepQuery(emphasisStyleQueryTarget, 'borderWidth')
                     },
                     clickable: serie.clickable,
                     zlevel: this.getZlevelBase(),
                     z: this.getZBase()
                 });
                 if (!shape.style.color) {
-                    shape.style.color = category ? this.getColor(category.name) : this.getColor(node.id);
+                    shape.style.color = category 
+                        ? this.getColor(category.name) : this.getColor(node.id);
                 }
+
                 shape.style.iconType = this.deepQuery(queryTarget, 'symbol');
                 var symbolSize = this.deepQuery(queryTarget, 'symbolSize') || 0;
                 if (typeof symbolSize === 'number') {
-                    symbolSize = [
-                        symbolSize,
-                        symbolSize
-                    ];
+                    symbolSize = [symbolSize, symbolSize];
                 }
+                // 强制设定节点大小，否则默认映射到 minRadius 到 maxRadius 后的值
                 shape.style.width = symbolSize[0] * 2;
                 shape.style.height = symbolSize[1] * 2;
+
                 if (shape.style.iconType.match('image')) {
-                    shape.style.image = shape.style.iconType.replace(new RegExp('^image:\\/\\/'), '');
+                    shape.style.image = shape.style.iconType.replace(
+                        new RegExp('^image:\\/\\/'), ''
+                    );
                     shape = new ImageShape({
                         style: shape.style,
                         highlightStyle: shape.highlightStyle,
@@ -395,17 +557,34 @@ define('echarts/chart/force', [
                         z: this.getZBase()
                     });
                 }
+                
+                // 节点标签样式
                 if (this.deepQuery(queryTarget, 'itemStyle.normal.label.show')) {
                     shape.style.text = node.data.label == null ? node.id : node.data.label;
-                    shape.style.textPosition = this.deepQuery(queryTarget, 'itemStyle.normal.label.position');
-                    shape.style.textColor = this.deepQuery(queryTarget, 'itemStyle.normal.label.textStyle.color');
-                    shape.style.textFont = this.getFont(this.deepQuery(queryTarget, 'itemStyle.normal.label.textStyle') || {});
+                    shape.style.textPosition = this.deepQuery(
+                        queryTarget, 'itemStyle.normal.label.position'
+                    ) ;
+                    shape.style.textColor = this.deepQuery(
+                        queryTarget, 'itemStyle.normal.label.textStyle.color'
+                    );
+                    shape.style.textFont = this.getFont(this.deepQuery(
+                        queryTarget, 'itemStyle.normal.label.textStyle'
+                    ) || {});
                 }
+
                 if (this.deepQuery(queryTarget, 'itemStyle.emphasis.label.show')) {
-                    shape.highlightStyle.textPosition = this.deepQuery(queryTarget, 'itemStyle.emphasis.label.position');
-                    shape.highlightStyle.textColor = this.deepQuery(queryTarget, 'itemStyle.emphasis.label.textStyle.color');
-                    shape.highlightStyle.textFont = this.getFont(this.deepQuery(queryTarget, 'itemStyle.emphasis.label.textStyle') || {});
+                    shape.highlightStyle.textPosition = this.deepQuery(
+                        queryTarget, 'itemStyle.emphasis.label.position'
+                    );
+                    shape.highlightStyle.textColor = this.deepQuery(
+                        queryTarget, 'itemStyle.emphasis.label.textStyle.color'
+                    );
+                    shape.highlightStyle.textFont = this.getFont(this.deepQuery(
+                        queryTarget, 'itemStyle.emphasis.label.textStyle'
+                    ) || {});
                 }
+
+                // 拖拽特性
                 if (this.deepQuery(queryTarget, 'draggable')) {
                     this.setCalculable(shape);
                     shape.dragEnableTime = 0;
@@ -413,66 +592,132 @@ define('echarts/chart/force', [
                     shape.ondragstart = this.shapeHandler.ondragstart;
                     shape.ondragover = null;
                 }
+                
                 var categoryName = '';
-                if (typeof node.category !== 'undefined') {
+                if (typeof(node.category) !== 'undefined') {
                     var category = categories[node.category];
-                    categoryName = category && category.name || '';
+                    categoryName = (category && category.name) || '';
                 }
-                ecData.pack(shape, serie, serieIdx, node.data, node.rawIndex, node.data.name || '', node.category);
+                // !!Pack data before addShape
+                ecData.pack(
+                    shape,
+                    serie,
+                    serieIdx,
+                    // data
+                    node.data,
+                    // data index
+                    node.rawIndex,
+                    // name
+                    node.data.name || '',
+                    // category
+                    // special
+                    node.category
+                );
+                
                 this.shapeList.push(shape);
                 this.zr.addShape(shape);
+
                 node.shape = shape;
             }, this);
         },
-        _buildLinkShapes: function (serie, serieIdx) {
+
+        _buildLinkShapes: function(serie, serieIdx) {
             var graph = this._graph;
             var len = graph.edges.length;
+
             for (var i = 0; i < len; i++) {
                 var gEdge = graph.edges[i];
                 var link = gEdge.data;
                 var source = gEdge.node1;
                 var target = gEdge.node2;
+
                 var otherEdge = graph.getEdge(target, source);
+
                 var queryTarget = this._getEdgeQueryTarget(serie, link);
                 var linkType = this.deepQuery(queryTarget, 'type');
+                // TODO 暂时只有线段支持箭头
                 if (serie.linkSymbol && serie.linkSymbol !== 'none') {
                     linkType = 'line';
                 }
                 var LinkShapeCtor = linkType === 'line' ? LineShape : BezierCurveShape;
+
                 var linkShape = new LinkShapeCtor({
-                    style: {
-                        xStart: 0,
-                        yStart: 0,
-                        xEnd: 0,
-                        yEnd: 0
+                    style : {
+                        xStart : 0,
+                        yStart : 0,
+                        xEnd : 0,
+                        yEnd : 0
                     },
                     clickable: this.query(serie, 'clickable'),
-                    highlightStyle: {},
+                    highlightStyle : {},
                     zlevel: this.getZlevelBase(),
                     z: this.getZBase()
                 });
+
                 if (otherEdge && otherEdge.shape) {
+                    // 偏移一定位置放置双向边重叠
                     linkShape.style.offset = 4;
                     otherEdge.shape.style.offset = 4;
                 }
-                zrUtil.merge(linkShape.style, this.query(serie, 'itemStyle.normal.linkStyle'), true);
-                zrUtil.merge(linkShape.highlightStyle, this.query(serie, 'itemStyle.emphasis.linkStyle'), true);
-                if (typeof link.itemStyle !== 'undefined') {
-                    if (link.itemStyle.normal) {
+
+                zrUtil.merge(
+                    linkShape.style,
+                    this.query(serie, 'itemStyle.normal.linkStyle'),
+                    true
+                );
+                zrUtil.merge(
+                    linkShape.highlightStyle,
+                    this.query(serie, 'itemStyle.emphasis.linkStyle'),
+                    true
+                );
+                if (typeof(link.itemStyle) !== 'undefined') {
+                    if(link.itemStyle.normal){
                         zrUtil.merge(linkShape.style, link.itemStyle.normal, true);
                     }
-                    if (link.itemStyle.emphasis) {
-                        zrUtil.merge(linkShape.highlightStyle, link.itemStyle.emphasis, true);
+                    if(link.itemStyle.emphasis){
+                        zrUtil.merge(
+                            linkShape.highlightStyle,
+                            link.itemStyle.emphasis,
+                            true
+                        );
                     }
                 }
-                linkShape.style.lineWidth = linkShape.style.lineWidth || linkShape.style.width;
-                linkShape.style.strokeColor = linkShape.style.strokeColor || linkShape.style.color;
-                linkShape.highlightStyle.lineWidth = linkShape.highlightStyle.lineWidth || linkShape.highlightStyle.width;
-                linkShape.highlightStyle.strokeColor = linkShape.highlightStyle.strokeColor || linkShape.highlightStyle.color;
-                ecData.pack(linkShape, serie, serieIdx, gEdge.data, gEdge.rawIndex == null ? i : gEdge.rawIndex, gEdge.data.name || source.id + ' - ' + target.id, source.id, target.id);
+
+                // 兼容原有写法
+                linkShape.style.lineWidth
+                    = linkShape.style.lineWidth || linkShape.style.width;
+                linkShape.style.strokeColor
+                    = linkShape.style.strokeColor || linkShape.style.color;
+                linkShape.highlightStyle.lineWidth
+                    = linkShape.highlightStyle.lineWidth || linkShape.highlightStyle.width;
+                linkShape.highlightStyle.strokeColor
+                    = linkShape.highlightStyle.strokeColor || linkShape.highlightStyle.color;
+
+                ecData.pack(
+                    linkShape,
+                    // serie
+                    serie,
+                    // serie index
+                    serieIdx,
+                    // link data
+                    gEdge.data,
+                    // link data index
+                    gEdge.rawIndex == null ? i : gEdge.rawIndex,
+                    // source name - target name
+                    gEdge.data.name || (source.id + ' - ' + target.id),
+                    // link source id
+                    // special
+                    source.id,
+                    // link target id
+                    // special2
+                    target.id
+                );
+
                 this.shapeList.push(linkShape);
                 this.zr.addShape(linkShape);
                 gEdge.shape = linkShape;
+
+                // Arrow shape
                 if (serie.linkSymbol && serie.linkSymbol !== 'none') {
                     var symbolShape = new IconShape({
                         style: {
@@ -482,14 +727,16 @@ define('echarts/chart/force', [
                             height: serie.linkSymbolSize[1],
                             iconType: serie.linkSymbol,
                             brushType: 'fill',
+                            // Use same style with link shape
                             color: linkShape.style.strokeColor
                         },
-                        highlightStyle: { brushType: 'fill' },
-                        position: [
-                            0,
-                            0
-                        ],
-                        rotation: 0
+                        highlightStyle: {
+                            brushType: 'fill'
+                        },
+                        position: [0, 0],
+                        rotation: 0,
+                        zlevel: this.getZlevelBase(),
+                        z: this.getZBase()
                     });
                     linkShape._symbolShape = symbolShape;
                     this.shapeList.push(symbolShape);
@@ -497,7 +744,8 @@ define('echarts/chart/force', [
                 }
             }
         },
-        _updateLinkShapes: function () {
+
+        _updateLinkShapes: function() {
             var v = vec2.create();
             var n = vec2.create();
             var p1 = vec2.create();
@@ -507,36 +755,51 @@ define('echarts/chart/force', [
                 var edge = edges[i];
                 var sourceShape = edge.node1.shape;
                 var targetShape = edge.node2.shape;
+
                 vec2.copy(p1, sourceShape.position);
                 vec2.copy(p2, targetShape.position);
+
                 var edgeShapeStyle = edge.shape.style;
+
                 vec2.sub(v, p1, p2);
                 vec2.normalize(v, v);
+
                 if (edgeShapeStyle.offset) {
                     n[0] = v[1];
-                    n[1] = -v[0];
+                    n[1] = - v[0];
+
                     vec2.scaleAndAdd(p1, p1, n, edgeShapeStyle.offset);
                     vec2.scaleAndAdd(p2, p2, n, edgeShapeStyle.offset);
-                } else if (edge.shape.type === 'bezier-curve') {
+                }
+                else if (edge.shape.type === 'bezier-curve') {
                     edgeShapeStyle.cpX1 = (p1[0] + p2[0]) / 2 - (p2[1] - p1[1]) / 4;
                     edgeShapeStyle.cpY1 = (p1[1] + p2[1]) / 2 - (p1[0] - p2[0]) / 4;
                 }
+
                 edgeShapeStyle.xStart = p1[0];
                 edgeShapeStyle.yStart = p1[1];
                 edgeShapeStyle.xEnd = p2[0];
                 edgeShapeStyle.yEnd = p2[1];
+
                 edge.shape.modSelf();
+
                 if (edge.shape._symbolShape) {
                     var symbolShape = edge.shape._symbolShape;
                     vec2.copy(symbolShape.position, p2);
-                    vec2.scaleAndAdd(symbolShape.position, symbolShape.position, v, targetShape.style.width / 2 + 2);
+                    vec2.scaleAndAdd(
+                        symbolShape.position, symbolShape.position,
+                        v, targetShape.style.width / 2 + 2
+                    );
+
                     var angle = Math.atan2(v[1], v[0]);
                     symbolShape.rotation = Math.PI / 2 - angle;
+
                     symbolShape.modSelf();
                 }
             }
         },
-        _syncNodePositions: function () {
+
+        _syncNodePositions: function() {
             var graph = this._graph;
             for (var i = 0; i < graph.nodes.length; i++) {
                 var gNode = graph.nodes[i];
@@ -557,7 +820,9 @@ define('echarts/chart/force', [
                 }
                 shape.position[0] += (position[0] - shape.position[0]) * (1 - fixX);
                 shape.position[1] += (position[1] - shape.position[1]) * (1 - fixY);
+
                 vec2.copy(position, shape.position);
+
                 var nodeName = node.name;
                 if (nodeName) {
                     var gPos = this.__nodePositionMap[nodeName];
@@ -566,33 +831,46 @@ define('echarts/chart/force', [
                     }
                     vec2.copy(gPos, position);
                 }
+
                 shape.modSelf();
             }
         },
-        _step: function (e) {
+
+        _step: function(e) {
             this._syncNodePositions();
+
             this._updateLinkShapes();
+
             this.zr.refreshNextFrame();
+
             if (this._layout.temperature > 0.01) {
                 this._layout.step(this._steps);
             } else {
-                this.messageCenter.dispatch(ecConfig.EVENT.FORCE_LAYOUT_END, {}, {}, this.myChart);
+                this.messageCenter.dispatch(
+                    ecConfig.EVENT.FORCE_LAYOUT_END,
+                    {},
+                    {},
+                    this.myChart
+                );
             }
         },
-        refresh: function (newOption) {
+
+        refresh: function(newOption) {
             if (newOption) {
                 this.option = newOption;
                 this.series = this.option.series;
             }
+
             this.legend = this.component.legend;
             if (this.legend) {
-                this.getColor = function (param) {
+                this.getColor = function(param) {
                     return this.legend.getColor(param);
                 };
-                this.isSelected = function (param) {
+                this.isSelected = function(param) {
                     return this.legend.isSelected(param);
                 };
-            } else {
+            }
+            else {
                 var colorMap = {};
                 var count = 0;
                 this.getColor = function (key) {
@@ -602,22 +880,28 @@ define('echarts/chart/force', [
                     if (!colorMap[key]) {
                         colorMap[key] = this.zr.getColor(count++);
                     }
+
                     return colorMap[key];
                 };
                 this.isSelected = function () {
                     return true;
                 };
             }
+
             this._init();
         },
-        dispose: function () {
+
+        dispose: function(){
             this.clear();
             this.shapeList = null;
             this.effectList = null;
+
             this._layout.dispose();
             this._layout = null;
+
             this.__nodePositionMap = {};
         },
+
         getPosition: function () {
             var position = [];
             this._graph.eachNode(function (n) {
@@ -631,1064 +915,63 @@ define('echarts/chart/force', [
             return position;
         }
     };
+
+    /**
+     * 拖拽开始
+     */
     function ondragstart(param) {
         if (!this.isDragstart || !param.target) {
+            // 没有在当前实例上发生拖拽行为则直接返回
             return;
         }
+
         var shape = param.target;
         shape.fixed = true;
+
+        // 处理完拖拽事件后复位
         this.isDragstart = false;
+
         this.zr.on(zrConfig.EVENT.MOUSEMOVE, this.onmousemove);
     }
+
     function onmousemove() {
         this._layout.temperature = 0.8;
         this._step();
     }
+    
+    /**
+     * 数据项被拖拽出去，重载基类方法
+     */
     function ondragend(param, status) {
         if (!this.isDragend || !param.target) {
+            // 没有在当前实例上发生拖拽行为则直接返回
             return;
         }
         var shape = param.target;
         shape.fixed = false;
+
+        // 别status = {}赋值啊！！
         status.dragIn = true;
+        //你自己refresh的话把他设为false，设true就会重新调refresh接口
         status.needRefresh = false;
+
+        // 处理完拖拽事件后复位
         this.isDragend = false;
+
         this.zr.un(zrConfig.EVENT.MOUSEMOVE, this.onmousemove);
     }
+   
     function _randomInSquare(x, y, size) {
         var v = vec2.create();
         v[0] = (Math.random() - 0.5) * size + x;
         v[1] = (Math.random() - 0.5) * size + y;
         return v;
     }
+    
     zrUtil.inherits(Force, ChartBase);
+    
+    // 图表注册
     require('../chart').define('force', Force);
+
     return Force;
-});define('echarts/data/Graph', [
-    'require',
-    'zrender/tool/util'
-], function (require) {
-    var util = require('zrender/tool/util');
-    'use strict';
-    var Graph = function (directed) {
-        this._directed = directed || false;
-        this.nodes = [];
-        this.edges = [];
-        this._nodesMap = {};
-        this._edgesMap = {};
-    };
-    Graph.prototype.isDirected = function () {
-        return this._directed;
-    };
-    Graph.prototype.addNode = function (id, data) {
-        if (this._nodesMap[id]) {
-            return this._nodesMap[id];
-        }
-        var node = new Graph.Node(id, data);
-        this.nodes.push(node);
-        this._nodesMap[id] = node;
-        return node;
-    };
-    Graph.prototype.getNodeById = function (id) {
-        return this._nodesMap[id];
-    };
-    Graph.prototype.addEdge = function (n1, n2, data) {
-        if (typeof n1 == 'string') {
-            n1 = this._nodesMap[n1];
-        }
-        if (typeof n2 == 'string') {
-            n2 = this._nodesMap[n2];
-        }
-        if (!n1 || !n2) {
-            return;
-        }
-        var key = n1.id + '-' + n2.id;
-        if (this._edgesMap[key]) {
-            return this._edgesMap[key];
-        }
-        var edge = new Graph.Edge(n1, n2, data);
-        if (this._directed) {
-            n1.outEdges.push(edge);
-            n2.inEdges.push(edge);
-        }
-        n1.edges.push(edge);
-        if (n1 !== n2) {
-            n2.edges.push(edge);
-        }
-        this.edges.push(edge);
-        this._edgesMap[key] = edge;
-        return edge;
-    };
-    Graph.prototype.removeEdge = function (edge) {
-        var n1 = edge.node1;
-        var n2 = edge.node2;
-        var key = n1.id + '-' + n2.id;
-        if (this._directed) {
-            n1.outEdges.splice(util.indexOf(n1.outEdges, edge), 1);
-            n2.inEdges.splice(util.indexOf(n2.inEdges, edge), 1);
-        }
-        n1.edges.splice(util.indexOf(n1.edges, edge), 1);
-        if (n1 !== n2) {
-            n2.edges.splice(util.indexOf(n2.edges, edge), 1);
-        }
-        delete this._edgesMap[key];
-        this.edges.splice(util.indexOf(this.edges, edge), 1);
-    };
-    Graph.prototype.getEdge = function (n1, n2) {
-        if (typeof n1 !== 'string') {
-            n1 = n1.id;
-        }
-        if (typeof n2 !== 'string') {
-            n2 = n2.id;
-        }
-        if (this._directed) {
-            return this._edgesMap[n1 + '-' + n2];
-        } else {
-            return this._edgesMap[n1 + '-' + n2] || this._edgesMap[n2 + '-' + n1];
-        }
-    };
-    Graph.prototype.removeNode = function (node) {
-        if (typeof node === 'string') {
-            node = this._nodesMap[node];
-            if (!node) {
-                return;
-            }
-        }
-        delete this._nodesMap[node.id];
-        this.nodes.splice(util.indexOf(this.nodes, node), 1);
-        for (var i = 0; i < this.edges.length;) {
-            var edge = this.edges[i];
-            if (edge.node1 === node || edge.node2 === node) {
-                this.removeEdge(edge);
-            } else {
-                i++;
-            }
-        }
-    };
-    Graph.prototype.filterNode = function (cb, context) {
-        var len = this.nodes.length;
-        for (var i = 0; i < len;) {
-            if (cb.call(context, this.nodes[i], i)) {
-                i++;
-            } else {
-                this.removeNode(this.nodes[i]);
-                len--;
-            }
-        }
-    };
-    Graph.prototype.filterEdge = function (cb, context) {
-        var len = this.edges.length;
-        for (var i = 0; i < len;) {
-            if (cb.call(context, this.edges[i], i)) {
-                i++;
-            } else {
-                this.removeEdge(this.edges[i]);
-                len--;
-            }
-        }
-    };
-    Graph.prototype.eachNode = function (cb, context) {
-        var len = this.nodes.length;
-        for (var i = 0; i < len; i++) {
-            if (this.nodes[i]) {
-                cb.call(context, this.nodes[i], i);
-            }
-        }
-    };
-    Graph.prototype.eachEdge = function (cb, context) {
-        var len = this.edges.length;
-        for (var i = 0; i < len; i++) {
-            if (this.edges[i]) {
-                cb.call(context, this.edges[i], i);
-            }
-        }
-    };
-    Graph.prototype.clear = function () {
-        this.nodes.length = 0;
-        this.edges.length = 0;
-        this._nodesMap = {};
-        this._edgesMap = {};
-    };
-    Graph.prototype.breadthFirstTraverse = function (cb, startNode, direction, context) {
-        if (typeof startNode === 'string') {
-            startNode = this._nodesMap[startNode];
-        }
-        if (!startNode) {
-            return;
-        }
-        var edgeType = 'edges';
-        if (direction === 'out') {
-            edgeType = 'outEdges';
-        } else if (direction === 'in') {
-            edgeType = 'inEdges';
-        }
-        for (var i = 0; i < this.nodes.length; i++) {
-            this.nodes[i].__visited = false;
-        }
-        if (cb.call(context, startNode, null)) {
-            return;
-        }
-        var queue = [startNode];
-        while (queue.length) {
-            var currentNode = queue.shift();
-            var edges = currentNode[edgeType];
-            for (var i = 0; i < edges.length; i++) {
-                var e = edges[i];
-                var otherNode = e.node1 === currentNode ? e.node2 : e.node1;
-                if (!otherNode.__visited) {
-                    if (cb.call(otherNode, otherNode, currentNode)) {
-                        return;
-                    }
-                    queue.push(otherNode);
-                    otherNode.__visited = true;
-                }
-            }
-        }
-    };
-    Graph.prototype.clone = function () {
-        var graph = new Graph(this._directed);
-        for (var i = 0; i < this.nodes.length; i++) {
-            graph.addNode(this.nodes[i].id, this.nodes[i].data);
-        }
-        for (var i = 0; i < this.edges.length; i++) {
-            var e = this.edges[i];
-            graph.addEdge(e.node1.id, e.node2.id, e.data);
-        }
-        return graph;
-    };
-    var Node = function (id, data) {
-        this.id = id;
-        this.data = data || null;
-        this.inEdges = [];
-        this.outEdges = [];
-        this.edges = [];
-    };
-    Node.prototype.degree = function () {
-        return this.edges.length;
-    };
-    Node.prototype.inDegree = function () {
-        return this.inEdges.length;
-    };
-    Node.prototype.outDegree = function () {
-        return this.outEdges.length;
-    };
-    var Edge = function (node1, node2, data) {
-        this.node1 = node1;
-        this.node2 = node2;
-        this.data = data || null;
-    };
-    Graph.Node = Node;
-    Graph.Edge = Edge;
-    Graph.fromMatrix = function (nodesData, matrix, directed) {
-        if (!matrix || !matrix.length || matrix[0].length !== matrix.length || nodesData.length !== matrix.length) {
-            return;
-        }
-        var size = matrix.length;
-        var graph = new Graph(directed);
-        for (var i = 0; i < size; i++) {
-            var node = graph.addNode(nodesData[i].id, nodesData[i]);
-            node.data.value = 0;
-            if (directed) {
-                node.data.outValue = node.data.inValue = 0;
-            }
-        }
-        for (var i = 0; i < size; i++) {
-            for (var j = 0; j < size; j++) {
-                var item = matrix[i][j];
-                if (directed) {
-                    graph.nodes[i].data.outValue += item;
-                    graph.nodes[j].data.inValue += item;
-                }
-                graph.nodes[i].data.value += item;
-                graph.nodes[j].data.value += item;
-            }
-        }
-        for (var i = 0; i < size; i++) {
-            for (var j = i; j < size; j++) {
-                var item = matrix[i][j];
-                if (item === 0) {
-                    continue;
-                }
-                var n1 = graph.nodes[i];
-                var n2 = graph.nodes[j];
-                var edge = graph.addEdge(n1, n2, {});
-                edge.data.weight = item;
-                if (i !== j) {
-                    if (directed && matrix[j][i]) {
-                        var inEdge = graph.addEdge(n2, n1, {});
-                        inEdge.data.weight = matrix[j][i];
-                    }
-                }
-            }
-        }
-        return graph;
-    };
-    return Graph;
-});define('echarts/layout/Force', [
-    'require',
-    './forceLayoutWorker',
-    'zrender/tool/vector'
-], function (require) {
-    var ForceLayoutWorker = require('./forceLayoutWorker');
-    var vec2 = require('zrender/tool/vector');
-    var requestAnimationFrame = window.requestAnimationFrame || window.msRequestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || function (func) {
-        setTimeout(func, 16);
-    };
-    var ArrayCtor = typeof Float32Array == 'undefined' ? Array : Float32Array;
-    var workerUrl;
-    function createWorkerUrl() {
-        if (typeof Worker !== 'undefined' && typeof Blob !== 'undefined') {
-            try {
-                var blob = new Blob([ForceLayoutWorker.getWorkerCode()]);
-                workerUrl = window.URL.createObjectURL(blob);
-            } catch (e) {
-                workerUrl = '';
-            }
-        }
-        return workerUrl;
-    }
-    var ForceLayout = function (opts) {
-        if (typeof workerUrl === 'undefined') {
-            createWorkerUrl();
-        }
-        opts = opts || {};
-        this.width = opts.width || 500;
-        this.height = opts.height || 500;
-        this.center = opts.center || [
-            this.width / 2,
-            this.height / 2
-        ];
-        this.ratioScaling = opts.ratioScaling || false;
-        this.scaling = opts.scaling || 1;
-        this.gravity = typeof opts.gravity !== 'undefined' ? opts.gravity : 1;
-        this.large = opts.large || false;
-        this.preventNodeOverlap = opts.preventNodeOverlap || false;
-        this.preventNodeEdgeOverlap = opts.preventNodeEdgeOverlap || false;
-        this.maxSpeedIncrease = opts.maxSpeedIncrease || 1;
-        this.onupdate = opts.onupdate || function () {
-        };
-        this.temperature = opts.temperature || 1;
-        this.coolDown = opts.coolDown || 0.99;
-        this._layout = null;
-        this._layoutWorker = null;
-        var self = this;
-        var _$onupdate = this._$onupdate;
-        this._$onupdate = function (e) {
-            _$onupdate.call(self, e);
-        };
-    };
-    ForceLayout.prototype.updateConfig = function () {
-        var width = this.width;
-        var height = this.height;
-        var size = Math.min(width, height);
-        var config = {
-            center: this.center,
-            width: this.ratioScaling ? width : size,
-            height: this.ratioScaling ? height : size,
-            scaling: this.scaling || 1,
-            gravity: this.gravity || 1,
-            barnesHutOptimize: this.large,
-            preventNodeOverlap: this.preventNodeOverlap,
-            preventNodeEdgeOverlap: this.preventNodeEdgeOverlap,
-            maxSpeedIncrease: this.maxSpeedIncrease
-        };
-        if (this._layoutWorker) {
-            this._layoutWorker.postMessage({
-                cmd: 'updateConfig',
-                config: config
-            });
-        } else {
-            for (var name in config) {
-                this._layout[name] = config[name];
-            }
-        }
-    };
-    ForceLayout.prototype.init = function (graph, useWorker) {
-        if (this._layoutWorker) {
-            this._layoutWorker.terminate();
-            this._layoutWorker = null;
-        }
-        if (workerUrl && useWorker) {
-            try {
-                if (!this._layoutWorker) {
-                    this._layoutWorker = new Worker(workerUrl);
-                    this._layoutWorker.onmessage = this._$onupdate;
-                }
-                this._layout = null;
-            } catch (e) {
-                this._layoutWorker = null;
-                if (!this._layout) {
-                    this._layout = new ForceLayoutWorker();
-                }
-            }
-        } else {
-            if (!this._layout) {
-                this._layout = new ForceLayoutWorker();
-            }
-        }
-        this.temperature = 1;
-        this.graph = graph;
-        var len = graph.nodes.length;
-        var positionArr = new ArrayCtor(len * 2);
-        var massArr = new ArrayCtor(len);
-        var sizeArr = new ArrayCtor(len);
-        for (var i = 0; i < len; i++) {
-            var n = graph.nodes[i];
-            positionArr[i * 2] = n.layout.position[0];
-            positionArr[i * 2 + 1] = n.layout.position[1];
-            massArr[i] = typeof n.layout.mass === 'undefined' ? 1 : n.layout.mass;
-            sizeArr[i] = typeof n.layout.size === 'undefined' ? 1 : n.layout.size;
-            n.layout.__index = i;
-        }
-        len = graph.edges.length;
-        var edgeArr = new ArrayCtor(len * 2);
-        var edgeWeightArr = new ArrayCtor(len);
-        for (var i = 0; i < len; i++) {
-            var edge = graph.edges[i];
-            edgeArr[i * 2] = edge.node1.layout.__index;
-            edgeArr[i * 2 + 1] = edge.node2.layout.__index;
-            edgeWeightArr[i] = edge.layout.weight || 1;
-        }
-        if (this._layoutWorker) {
-            this._layoutWorker.postMessage({
-                cmd: 'init',
-                nodesPosition: positionArr,
-                nodesMass: massArr,
-                nodesSize: sizeArr,
-                edges: edgeArr,
-                edgesWeight: edgeWeightArr
-            });
-        } else {
-            this._layout.initNodes(positionArr, massArr, sizeArr);
-            this._layout.initEdges(edgeArr, edgeWeightArr);
-        }
-        this.updateConfig();
-    };
-    ForceLayout.prototype.step = function (steps) {
-        var nodes = this.graph.nodes;
-        if (this._layoutWorker) {
-            var positionArr = new ArrayCtor(nodes.length * 2);
-            for (var i = 0; i < nodes.length; i++) {
-                var n = nodes[i];
-                positionArr[i * 2] = n.layout.position[0];
-                positionArr[i * 2 + 1] = n.layout.position[1];
-            }
-            this._layoutWorker.postMessage(positionArr.buffer, [positionArr.buffer]);
-            this._layoutWorker.postMessage({
-                cmd: 'update',
-                steps: steps,
-                temperature: this.temperature,
-                coolDown: this.coolDown
-            });
-            for (var i = 0; i < steps; i++) {
-                this.temperature *= this.coolDown;
-            }
-        } else {
-            requestAnimationFrame(this._$onupdate);
-            for (var i = 0; i < nodes.length; i++) {
-                var n = nodes[i];
-                vec2.copy(this._layout.nodes[i].position, n.layout.position);
-            }
-            for (var i = 0; i < steps; i++) {
-                this._layout.temperature = this.temperature;
-                this._layout.update();
-                this.temperature *= this.coolDown;
-            }
-        }
-    };
-    ForceLayout.prototype._$onupdate = function (e) {
-        if (this._layoutWorker) {
-            var positionArr = new Float32Array(e.data);
-            for (var i = 0; i < this.graph.nodes.length; i++) {
-                var n = this.graph.nodes[i];
-                n.layout.position[0] = positionArr[i * 2];
-                n.layout.position[1] = positionArr[i * 2 + 1];
-            }
-            this.onupdate && this.onupdate();
-        } else if (this._layout) {
-            for (var i = 0; i < this.graph.nodes.length; i++) {
-                var n = this.graph.nodes[i];
-                vec2.copy(n.layout.position, this._layout.nodes[i].position);
-            }
-            this.onupdate && this.onupdate();
-        }
-    };
-    ForceLayout.prototype.dispose = function () {
-        if (this._layoutWorker) {
-            this._layoutWorker.terminate();
-        }
-        this._layoutWorker = null;
-        this._layout = null;
-    };
-    return ForceLayout;
-});define('echarts/layout/forceLayoutWorker', [
-    'require',
-    'zrender/tool/vector'
-], function __echartsForceLayoutWorker(require) {
-    'use strict';
-    var vec2;
-    var inWorker = typeof window === 'undefined' && typeof require === 'undefined';
-    if (inWorker) {
-        vec2 = {
-            create: function (x, y) {
-                var out = new Float32Array(2);
-                out[0] = x || 0;
-                out[1] = y || 0;
-                return out;
-            },
-            dist: function (a, b) {
-                var x = b[0] - a[0];
-                var y = b[1] - a[1];
-                return Math.sqrt(x * x + y * y);
-            },
-            len: function (a) {
-                var x = a[0];
-                var y = a[1];
-                return Math.sqrt(x * x + y * y);
-            },
-            scaleAndAdd: function (out, a, b, scale) {
-                out[0] = a[0] + b[0] * scale;
-                out[1] = a[1] + b[1] * scale;
-                return out;
-            },
-            scale: function (out, a, b) {
-                out[0] = a[0] * b;
-                out[1] = a[1] * b;
-                return out;
-            },
-            add: function (out, a, b) {
-                out[0] = a[0] + b[0];
-                out[1] = a[1] + b[1];
-                return out;
-            },
-            sub: function (out, a, b) {
-                out[0] = a[0] - b[0];
-                out[1] = a[1] - b[1];
-                return out;
-            },
-            dot: function (v1, v2) {
-                return v1[0] * v2[0] + v1[1] * v2[1];
-            },
-            normalize: function (out, a) {
-                var x = a[0];
-                var y = a[1];
-                var len = x * x + y * y;
-                if (len > 0) {
-                    len = 1 / Math.sqrt(len);
-                    out[0] = a[0] * len;
-                    out[1] = a[1] * len;
-                }
-                return out;
-            },
-            negate: function (out, a) {
-                out[0] = -a[0];
-                out[1] = -a[1];
-                return out;
-            },
-            copy: function (out, a) {
-                out[0] = a[0];
-                out[1] = a[1];
-                return out;
-            },
-            set: function (out, x, y) {
-                out[0] = x;
-                out[1] = y;
-                return out;
-            }
-        };
-    } else {
-        vec2 = require('zrender/tool/vector');
-    }
-    var ArrayCtor = typeof Float32Array == 'undefined' ? Array : Float32Array;
-    function Region() {
-        this.subRegions = [];
-        this.nSubRegions = 0;
-        this.node = null;
-        this.mass = 0;
-        this.centerOfMass = null;
-        this.bbox = new ArrayCtor(4);
-        this.size = 0;
-    }
-    Region.prototype.beforeUpdate = function () {
-        for (var i = 0; i < this.nSubRegions; i++) {
-            this.subRegions[i].beforeUpdate();
-        }
-        this.mass = 0;
-        if (this.centerOfMass) {
-            this.centerOfMass[0] = 0;
-            this.centerOfMass[1] = 0;
-        }
-        this.nSubRegions = 0;
-        this.node = null;
-    };
-    Region.prototype.afterUpdate = function () {
-        this.subRegions.length = this.nSubRegions;
-        for (var i = 0; i < this.nSubRegions; i++) {
-            this.subRegions[i].afterUpdate();
-        }
-    };
-    Region.prototype.addNode = function (node) {
-        if (this.nSubRegions === 0) {
-            if (this.node == null) {
-                this.node = node;
-                return;
-            } else {
-                this._addNodeToSubRegion(this.node);
-                this.node = null;
-            }
-        }
-        this._addNodeToSubRegion(node);
-        this._updateCenterOfMass(node);
-    };
-    Region.prototype.findSubRegion = function (x, y) {
-        for (var i = 0; i < this.nSubRegions; i++) {
-            var region = this.subRegions[i];
-            if (region.contain(x, y)) {
-                return region;
-            }
-        }
-    };
-    Region.prototype.contain = function (x, y) {
-        return this.bbox[0] <= x && this.bbox[2] >= x && this.bbox[1] <= y && this.bbox[3] >= y;
-    };
-    Region.prototype.setBBox = function (minX, minY, maxX, maxY) {
-        this.bbox[0] = minX;
-        this.bbox[1] = minY;
-        this.bbox[2] = maxX;
-        this.bbox[3] = maxY;
-        this.size = (maxX - minX + maxY - minY) / 2;
-    };
-    Region.prototype._newSubRegion = function () {
-        var subRegion = this.subRegions[this.nSubRegions];
-        if (!subRegion) {
-            subRegion = new Region();
-            this.subRegions[this.nSubRegions] = subRegion;
-        }
-        this.nSubRegions++;
-        return subRegion;
-    };
-    Region.prototype._addNodeToSubRegion = function (node) {
-        var subRegion = this.findSubRegion(node.position[0], node.position[1]);
-        var bbox = this.bbox;
-        if (!subRegion) {
-            var cx = (bbox[0] + bbox[2]) / 2;
-            var cy = (bbox[1] + bbox[3]) / 2;
-            var w = (bbox[2] - bbox[0]) / 2;
-            var h = (bbox[3] - bbox[1]) / 2;
-            var xi = node.position[0] >= cx ? 1 : 0;
-            var yi = node.position[1] >= cy ? 1 : 0;
-            var subRegion = this._newSubRegion();
-            subRegion.setBBox(xi * w + bbox[0], yi * h + bbox[1], (xi + 1) * w + bbox[0], (yi + 1) * h + bbox[1]);
-        }
-        subRegion.addNode(node);
-    };
-    Region.prototype._updateCenterOfMass = function (node) {
-        if (this.centerOfMass == null) {
-            this.centerOfMass = vec2.create();
-        }
-        var x = this.centerOfMass[0] * this.mass;
-        var y = this.centerOfMass[1] * this.mass;
-        x += node.position[0] * node.mass;
-        y += node.position[1] * node.mass;
-        this.mass += node.mass;
-        this.centerOfMass[0] = x / this.mass;
-        this.centerOfMass[1] = y / this.mass;
-    };
-    function GraphNode() {
-        this.position = vec2.create();
-        this.force = vec2.create();
-        this.forcePrev = vec2.create();
-        this.speed = vec2.create();
-        this.speedPrev = vec2.create();
-        this.mass = 1;
-        this.inDegree = 0;
-        this.outDegree = 0;
-    }
-    function GraphEdge(node1, node2) {
-        this.node1 = node1;
-        this.node2 = node2;
-        this.weight = 1;
-    }
-    function ForceLayout() {
-        this.barnesHutOptimize = false;
-        this.barnesHutTheta = 1.5;
-        this.repulsionByDegree = false;
-        this.preventNodeOverlap = false;
-        this.preventNodeEdgeOverlap = false;
-        this.strongGravity = true;
-        this.gravity = 1;
-        this.scaling = 1;
-        this.edgeWeightInfluence = 1;
-        this.center = [
-            0,
-            0
-        ];
-        this.width = 500;
-        this.height = 500;
-        this.maxSpeedIncrease = 1;
-        this.nodes = [];
-        this.edges = [];
-        this.bbox = new ArrayCtor(4);
-        this._rootRegion = new Region();
-        this._rootRegion.centerOfMass = vec2.create();
-        this._massArr = null;
-        this._k = 0;
-    }
-    ForceLayout.prototype.nodeToNodeRepulsionFactor = function (mass, d, k) {
-        return k * k * mass / d;
-    };
-    ForceLayout.prototype.edgeToNodeRepulsionFactor = function (mass, d, k) {
-        return k * mass / d;
-    };
-    ForceLayout.prototype.attractionFactor = function (w, d, k) {
-        return w * d / k;
-    };
-    ForceLayout.prototype.initNodes = function (positionArr, massArr, sizeArr) {
-        this.temperature = 1;
-        var nNodes = positionArr.length / 2;
-        this.nodes.length = 0;
-        var haveSize = typeof sizeArr !== 'undefined';
-        for (var i = 0; i < nNodes; i++) {
-            var node = new GraphNode();
-            node.position[0] = positionArr[i * 2];
-            node.position[1] = positionArr[i * 2 + 1];
-            node.mass = massArr[i];
-            if (haveSize) {
-                node.size = sizeArr[i];
-            }
-            this.nodes.push(node);
-        }
-        this._massArr = massArr;
-        if (haveSize) {
-            this._sizeArr = sizeArr;
-        }
-    };
-    ForceLayout.prototype.initEdges = function (edgeArr, edgeWeightArr) {
-        var nEdges = edgeArr.length / 2;
-        this.edges.length = 0;
-        var edgeHaveWeight = typeof edgeWeightArr !== 'undefined';
-        for (var i = 0; i < nEdges; i++) {
-            var sIdx = edgeArr[i * 2];
-            var tIdx = edgeArr[i * 2 + 1];
-            var sNode = this.nodes[sIdx];
-            var tNode = this.nodes[tIdx];
-            if (!sNode || !tNode) {
-                continue;
-            }
-            sNode.outDegree++;
-            tNode.inDegree++;
-            var edge = new GraphEdge(sNode, tNode);
-            if (edgeHaveWeight) {
-                edge.weight = edgeWeightArr[i];
-            }
-            this.edges.push(edge);
-        }
-    };
-    ForceLayout.prototype.update = function () {
-        var nNodes = this.nodes.length;
-        this.updateBBox();
-        this._k = 0.4 * this.scaling * Math.sqrt(this.width * this.height / nNodes);
-        if (this.barnesHutOptimize) {
-            this._rootRegion.setBBox(this.bbox[0], this.bbox[1], this.bbox[2], this.bbox[3]);
-            this._rootRegion.beforeUpdate();
-            for (var i = 0; i < nNodes; i++) {
-                this._rootRegion.addNode(this.nodes[i]);
-            }
-            this._rootRegion.afterUpdate();
-        } else {
-            var mass = 0;
-            var centerOfMass = this._rootRegion.centerOfMass;
-            vec2.set(centerOfMass, 0, 0);
-            for (var i = 0; i < nNodes; i++) {
-                var node = this.nodes[i];
-                mass += node.mass;
-                vec2.scaleAndAdd(centerOfMass, centerOfMass, node.position, node.mass);
-            }
-            if (mass > 0) {
-                vec2.scale(centerOfMass, centerOfMass, 1 / mass);
-            }
-        }
-        this.updateForce();
-        this.updatePosition();
-    };
-    ForceLayout.prototype.updateForce = function () {
-        var nNodes = this.nodes.length;
-        for (var i = 0; i < nNodes; i++) {
-            var node = this.nodes[i];
-            vec2.copy(node.forcePrev, node.force);
-            vec2.copy(node.speedPrev, node.speed);
-            vec2.set(node.force, 0, 0);
-        }
-        this.updateNodeNodeForce();
-        if (this.gravity > 0) {
-            this.updateGravityForce();
-        }
-        this.updateEdgeForce();
-        if (this.preventNodeEdgeOverlap) {
-            this.updateNodeEdgeForce();
-        }
-    };
-    ForceLayout.prototype.updatePosition = function () {
-        var nNodes = this.nodes.length;
-        var v = vec2.create();
-        for (var i = 0; i < nNodes; i++) {
-            var node = this.nodes[i];
-            var speed = node.speed;
-            vec2.scale(node.force, node.force, 1 / 30);
-            var df = vec2.len(node.force) + 0.1;
-            var scale = Math.min(df, 500) / df;
-            vec2.scale(node.force, node.force, scale);
-            vec2.add(speed, speed, node.force);
-            vec2.scale(speed, speed, this.temperature);
-            vec2.sub(v, speed, node.speedPrev);
-            var swing = vec2.len(v);
-            if (swing > 0) {
-                vec2.scale(v, v, 1 / swing);
-                var base = vec2.len(node.speedPrev);
-                if (base > 0) {
-                    swing = Math.min(swing / base, this.maxSpeedIncrease) * base;
-                    vec2.scaleAndAdd(speed, node.speedPrev, v, swing);
-                }
-            }
-            var ds = vec2.len(speed);
-            var scale = Math.min(ds, 100) / (ds + 0.1);
-            vec2.scale(speed, speed, scale);
-            vec2.add(node.position, node.position, speed);
-        }
-    };
-    ForceLayout.prototype.updateNodeNodeForce = function () {
-        var nNodes = this.nodes.length;
-        for (var i = 0; i < nNodes; i++) {
-            var na = this.nodes[i];
-            if (this.barnesHutOptimize) {
-                this.applyRegionToNodeRepulsion(this._rootRegion, na);
-            } else {
-                for (var j = i + 1; j < nNodes; j++) {
-                    var nb = this.nodes[j];
-                    this.applyNodeToNodeRepulsion(na, nb, false);
-                }
-            }
-        }
-    };
-    ForceLayout.prototype.updateGravityForce = function () {
-        for (var i = 0; i < this.nodes.length; i++) {
-            this.applyNodeGravity(this.nodes[i]);
-        }
-    };
-    ForceLayout.prototype.updateEdgeForce = function () {
-        for (var i = 0; i < this.edges.length; i++) {
-            this.applyEdgeAttraction(this.edges[i]);
-        }
-    };
-    ForceLayout.prototype.updateNodeEdgeForce = function () {
-        for (var i = 0; i < this.nodes.length; i++) {
-            for (var j = 0; j < this.edges.length; j++) {
-                this.applyEdgeToNodeRepulsion(this.edges[j], this.nodes[i]);
-            }
-        }
-    };
-    ForceLayout.prototype.applyRegionToNodeRepulsion = function () {
-        var v = vec2.create();
-        return function applyRegionToNodeRepulsion(region, node) {
-            if (region.node) {
-                this.applyNodeToNodeRepulsion(region.node, node, true);
-            } else {
-                if (region.mass === 0 && node.mass === 0) {
-                    return;
-                }
-                vec2.sub(v, node.position, region.centerOfMass);
-                var d2 = v[0] * v[0] + v[1] * v[1];
-                if (d2 > this.barnesHutTheta * region.size * region.size) {
-                    var factor = this._k * this._k * (node.mass + region.mass) / (d2 + 1);
-                    vec2.scaleAndAdd(node.force, node.force, v, factor * 2);
-                } else {
-                    for (var i = 0; i < region.nSubRegions; i++) {
-                        this.applyRegionToNodeRepulsion(region.subRegions[i], node);
-                    }
-                }
-            }
-        };
-    }();
-    ForceLayout.prototype.applyNodeToNodeRepulsion = function () {
-        var v = vec2.create();
-        return function applyNodeToNodeRepulsion(na, nb, oneWay) {
-            if (na === nb) {
-                return;
-            }
-            if (na.mass === 0 && nb.mass === 0) {
-                return;
-            }
-            vec2.sub(v, na.position, nb.position);
-            var d2 = v[0] * v[0] + v[1] * v[1];
-            if (d2 === 0) {
-                return;
-            }
-            var factor;
-            var mass = na.mass + nb.mass;
-            var d = Math.sqrt(d2);
-            vec2.scale(v, v, 1 / d);
-            if (this.preventNodeOverlap) {
-                d = d - na.size - nb.size;
-                if (d > 0) {
-                    factor = this.nodeToNodeRepulsionFactor(mass, d, this._k);
-                } else if (d <= 0) {
-                    factor = this._k * this._k * 10 * mass;
-                }
-            } else {
-                factor = this.nodeToNodeRepulsionFactor(mass, d, this._k);
-            }
-            if (!oneWay) {
-                vec2.scaleAndAdd(na.force, na.force, v, factor * 2);
-            }
-            vec2.scaleAndAdd(nb.force, nb.force, v, -factor * 2);
-        };
-    }();
-    ForceLayout.prototype.applyEdgeAttraction = function () {
-        var v = vec2.create();
-        return function applyEdgeAttraction(edge) {
-            var na = edge.node1;
-            var nb = edge.node2;
-            vec2.sub(v, na.position, nb.position);
-            var d = vec2.len(v);
-            var w;
-            if (this.edgeWeightInfluence === 0) {
-                w = 1;
-            } else if (this.edgeWeightInfluence == 1) {
-                w = edge.weight;
-            } else {
-                w = Math.pow(edge.weight, this.edgeWeightInfluence);
-            }
-            var factor;
-            if (this.preventOverlap) {
-                d = d - na.size - nb.size;
-                if (d <= 0) {
-                    return;
-                }
-            }
-            var factor = this.attractionFactor(w, d, this._k);
-            vec2.scaleAndAdd(na.force, na.force, v, -factor);
-            vec2.scaleAndAdd(nb.force, nb.force, v, factor);
-        };
-    }();
-    ForceLayout.prototype.applyNodeGravity = function () {
-        var v = vec2.create();
-        return function (node) {
-            vec2.sub(v, this.center, node.position);
-            if (this.width > this.height) {
-                v[1] *= this.width / this.height;
-            } else {
-                v[0] *= this.height / this.width;
-            }
-            var d = vec2.len(v) / 100;
-            if (this.strongGravity) {
-                vec2.scaleAndAdd(node.force, node.force, v, d * this.gravity * node.mass);
-            } else {
-                vec2.scaleAndAdd(node.force, node.force, v, this.gravity * node.mass / (d + 1));
-            }
-        };
-    }();
-    ForceLayout.prototype.applyEdgeToNodeRepulsion = function () {
-        var v12 = vec2.create();
-        var v13 = vec2.create();
-        var p = vec2.create();
-        return function (e, n3) {
-            var n1 = e.node1;
-            var n2 = e.node2;
-            if (n1 === n3 || n2 === n3) {
-                return;
-            }
-            vec2.sub(v12, n2.position, n1.position);
-            vec2.sub(v13, n3.position, n1.position);
-            var len12 = vec2.len(v12);
-            vec2.scale(v12, v12, 1 / len12);
-            var len = vec2.dot(v12, v13);
-            if (len < 0 || len > len12) {
-                return;
-            }
-            vec2.scaleAndAdd(p, n1.position, v12, len);
-            var dist = vec2.dist(p, n3.position) - n3.size;
-            var factor = this.edgeToNodeRepulsionFactor(n3.mass, Math.max(dist, 0.1), 100);
-            vec2.sub(v12, n3.position, p);
-            vec2.normalize(v12, v12);
-            vec2.scaleAndAdd(n3.force, n3.force, v12, factor);
-            vec2.scaleAndAdd(n1.force, n1.force, v12, -factor);
-            vec2.scaleAndAdd(n2.force, n2.force, v12, -factor);
-        };
-    }();
-    ForceLayout.prototype.updateBBox = function () {
-        var minX = Infinity;
-        var minY = Infinity;
-        var maxX = -Infinity;
-        var maxY = -Infinity;
-        for (var i = 0; i < this.nodes.length; i++) {
-            var pos = this.nodes[i].position;
-            minX = Math.min(minX, pos[0]);
-            minY = Math.min(minY, pos[1]);
-            maxX = Math.max(maxX, pos[0]);
-            maxY = Math.max(maxY, pos[1]);
-        }
-        this.bbox[0] = minX;
-        this.bbox[1] = minY;
-        this.bbox[2] = maxX;
-        this.bbox[3] = maxY;
-    };
-    ForceLayout.getWorkerCode = function () {
-        var str = __echartsForceLayoutWorker.toString();
-        return str.slice(str.indexOf('{') + 1, str.lastIndexOf('return'));
-    };
-    if (inWorker) {
-        var forceLayout = null;
-        self.onmessage = function (e) {
-            if (e.data instanceof ArrayBuffer) {
-                if (!forceLayout)
-                    return;
-                var positionArr = new Float32Array(e.data);
-                var nNodes = positionArr.length / 2;
-                for (var i = 0; i < nNodes; i++) {
-                    var node = forceLayout.nodes[i];
-                    node.position[0] = positionArr[i * 2];
-                    node.position[1] = positionArr[i * 2 + 1];
-                }
-                return;
-            }
-            switch (e.data.cmd) {
-            case 'init':
-                if (!forceLayout) {
-                    forceLayout = new ForceLayout();
-                }
-                forceLayout.initNodes(e.data.nodesPosition, e.data.nodesMass, e.data.nodesSize);
-                forceLayout.initEdges(e.data.edges, e.data.edgesWeight);
-                break;
-            case 'updateConfig':
-                if (forceLayout) {
-                    for (var name in e.data.config) {
-                        forceLayout[name] = e.data.config[name];
-                    }
-                }
-                break;
-            case 'update':
-                var steps = e.data.steps;
-                if (forceLayout) {
-                    var nNodes = forceLayout.nodes.length;
-                    var positionArr = new Float32Array(nNodes * 2);
-                    forceLayout.temperature = e.data.temperature;
-                    for (var i = 0; i < steps; i++) {
-                        forceLayout.update();
-                        forceLayout.temperature *= e.data.coolDown;
-                    }
-                    for (var i = 0; i < nNodes; i++) {
-                        var node = forceLayout.nodes[i];
-                        positionArr[i * 2] = node.position[0];
-                        positionArr[i * 2 + 1] = node.position[1];
-                    }
-                    self.postMessage(positionArr.buffer, [positionArr.buffer]);
-                } else {
-                    var emptyArr = new Float32Array();
-                    self.postMessage(emptyArr.buffer, [emptyArr.buffer]);
-                }
-                break;
-            }
-        };
-    }
-    return ForceLayout;
 });
