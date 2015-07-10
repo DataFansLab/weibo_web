@@ -1840,7 +1840,6 @@ define('echarts/echarts', [
             if (this._connected && fromMyself && this._curEventType === param.type) {
                 for (var c in this._connected) {
                     this._connected[c].connectedEventHandler(param);
-                    //console.log(param);
                 }
                 this._curEventType = null;
             }
@@ -6119,6 +6118,7 @@ define('zrender/zrender', [
                     }
                 }
                 itemShape = this._getItemShapeByType(lastX, lastY, itemWidth, itemHeight, this._selectedMap[itemName] && this._hasDataMap[itemName] ? color : '#ccc', itemType, color);
+                itemShape.style.lineWidth = 10; //ugly code
                 itemShape._name = itemName;
                 itemShape = new IconShape(itemShape);
                 textShape = {
@@ -6361,6 +6361,7 @@ define('zrender/zrender', [
         },
         _getItemShapeByType: function (x, y, width, height, color, itemType, defaultColor) {
             var highlightColor = color === '#ccc' ? defaultColor : color;
+
             var itemShape = {
                 zlevel: this.getZlevelBase(),
                 z: this.getZBase(),

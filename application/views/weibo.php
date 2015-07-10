@@ -16,6 +16,9 @@
     <script type="text/javascript" src="application/resource/plugins/jquery-2.1.4.js"></script>
     <script type="text/javascript" src="application/resource/plugins/angular.js"></script>
     <script type="text/javascript" src="application/resource/plugins/angular-route.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular-resource.js">
+    </script>
+    <script type="text/javascript" src="application/resource/js/services/weibo.js"></script>
     <script type="text/javascript" src="application/resource/js/controller/weibo.js"></script>
     <script type="text/javascript" src="application/resource/js/route/weibo.js"></script>
     <script type="text/javascript" src="application/resource/js/weibo.js"></script>
@@ -41,6 +44,8 @@
     <span>北京中软万维网络技术有限公司</span>
 </div>
 
-<script type="text/javascript" src="application/resource/plugins/echarts/echarts.js"></script>
+<script type="text/javascript" src="application/resource/plugins/source/echarts.js"></script>
+<script type="text/javascript" src="application/resource/js/config/stockSentimentChartsConfig.js"></script>
+
 </body>
 </html>

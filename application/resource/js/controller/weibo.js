@@ -3,7 +3,12 @@ angular.module("weibo.controllers", [])
     .controller('picInfoCtrl', ["$scope", function($scope){
         console.log("picInfoCtrl");
     }])
-    .controller('stockSentimentCtrl', ["$scope", function ($scope) {
+    .controller('stockSentimentCtrl', ["$scope", "Weibo", function ($scope, Weibo) {
+        //test interface
+        Weibo.getStock({}, function(_res) {
+            $scope.stockList = _res.stock_list;
+        });
+
         var PERIOD_TYPE = {
             singleWeek: 0,
             doubleWeek: 1,
@@ -11,46 +16,6 @@ angular.module("weibo.controllers", [])
             all: 3
         };
         $scope.period = 0;
-
-        $scope.stockList = [
-            {name: "中国软件", id: 232345},
-            {name: "中国银行", id: 132345},
-            {name: "中国石油", id: 432345},
-            {name: "浦发银行", id: 265645},
-            {name: "中国软件", id: 100000}
-        ];
-
-        $scope.relatedWeibo = [{
-            img_url: "",
-            title: "资金面陷入“一钱难求”",
-            up: 400,
-            down: 200,
-            related: ["美的空调", "格力电器"]
-        }, {
-            img_url: "",
-            title: "资金面陷入“一钱难求”",
-            up: 300,
-            down: 20,
-            related: ["美的空调", "格力电器"]
-        },{
-            img_url: "",
-            title: "联通电商部总经理巴拉拉",
-            up: 200,
-            down: 50,
-            related: ["中国石化","中国石油"]
-        },  {
-            img_url: "",
-            title: "联通电商部总经理巴拉拉",
-            up: 200,
-            down: 50,
-            related: ["中国石化","中国石油"]
-        },  {
-            img_url: "",
-            title: "联通电商部总经理巴拉拉",
-            up: 200,
-            down: 450,
-            related: ["中国石化","中国石油"]
-        }];
         
         $scope.SNSKeyword = [{keyword: "央企改革"}, {keyword: "互联网金融"}, {keyword: "互联网金融"}, {keyword: "银行"}, {keyword: "税改"}, {keyword: "一带一路"}, {keyword: "以房养老"}];
         $scope.SNSKeyword.forEach(function(item, index){
@@ -60,241 +25,70 @@ angular.module("weibo.controllers", [])
             item.classes = colors[i] + " " + font[i];
         });
 
-        (function(){
-            require.config({
-                paths: {
-                    echarts: "application/resource/plugins/echarts"
-                }
-            });
-            require([
-                'echarts',
-                'echarts/chart/line',
-                'echarts/chart/eventRiver'
-            ], function(ec) {
-                var ecConfig = require("echarts/config");
-                var weiboCountChart = ec.init(document.getElementById("weibo-count-chart"));
-                var sentimentChart = ec.init(document.getElementById("sentiment-chart"));
-                var data = {};
-                var weiboCountOption = {
-                    tooltip: {
-                        trigger: "axis",
-                        showDelay: 0,
-                        borderRadius: 0,
-                        borderWidth: 1,
-                        borderColor: "#504026",
-                        backgroundColor: "#242322",
-                        textStyle: {fontSize: "10"},
-                        axisPointer: {
-                            type: "line",
-                            lineStyle: {
-                                color: "#666666",
-                                type: "dashed",
-                                width: 2
-                            }
-                        },
-                        formatter: function (params) {
-                            return params[0].name + ':<br><span style="color:#f9b03c">' + params[0].seriesName + '： </span>' + params[0].value
-                            + '<br>\
-                            <span style="color:#327cc0">' + params[1].seriesName + '： </span>' + params[1].value;
-                        }
-                    },
-                    legend: {
-                     y: -100,
-                     data: ['微博数', '影响度']
-                    },
-                    grid: {
-                        x: 50,
-                        y: 5,
-                        x2: 50,
-                        y2: 20,
-                        borderWidth: 0
-                        //borderColor: "#171716"
-                    },
-                    xAxis: [{
-                        type: "category",
-                        position: "bottom",
-                        data: ["2015-06-2", "2015-06-03", "2015-06-04", "2015-06-05", "2015-06-06", "2015-06-07", "2015-06-08"],
-                        axisLine: {
-                            lineStyle: {
-                                color: "#333333",
-                                width: 1
-                            }
-                        },
-                        axisTick: {
-                            show: false
-                        },
-                        axisLabel: {
-                            textStyle: {color: "#ccc"}
-                        },
-                        splitLine: {show: false}
-                    }],
-                    yAxis: [{
-                        type: "value",
-                        show: true,
-                        axisLine: {
-                            show: false
-                        },
-                        axisLabel: {
-                            textStyle: {color: "#ccc"}
-                        },
-                        splitLine: {
-                            show: true,
-                            lineStyle: {
-                                color: "#333333",
-                                width: 1
-                            }
-                        },
-                        splitNumber: 7
-                    },{
-                         show:true,
-                         axisLine: {
-                         show: false
-                         },
-                         axisLabel: {
-                         textStyle: { color: "#ccc"}
-                         },
-                         splitLine: {
-                         show: true,
-                         lineStyle: {
-                         color: "#333333",
-                         width: 1
-                         }
-                         },
-                         splitNumber: 7
-                    }
+        //初始化表格
+        require.config({
+            paths: {echarts: "application/resource/plugins/source"}
+        });
+        require([
+            'echarts',
+            'echarts/chart/line'
+        ], function(echarts) {
+            var ecConfig = require("echarts/config");
+            var sentimentChart = echarts.init(document.getElementById("sentiment-chart"));
+            var weiboCountChart = echarts.init(document.getElementById("weibo-count-chart"));
+            var hotRankingChart = echarts.init(document.getElementById("hot-ranking-chart"));
+
+            stockSentimentChartConfig.weiboCountOption.series[0].itemStyle.normal.areaStyle.color = (function (){
+                var zrColor = require('zrender/tool/color');
+                return zrColor.getLinearGradient(
+                    0, 200, 0, 400,
+                    [[0, 'rgba(249,176,60,0.1)'],[0.8, 'rgba(255,255,255,0)']]
+                )
+            })();
+
+            sentimentChart.setOption(stockSentimentChartConfig.sentimentOption);
+            weiboCountChart.setOption(stockSentimentChartConfig.weiboCountOption);
+            hotRankingChart.setOption(stockSentimentChartConfig.hotRankingOption);
+            weiboCountChart.connect([sentimentChart]);
+            sentimentChart.connect([weiboCountChart]);
+
+            var lastData = 11;
+            var axisData;
+            timeTicket = setInterval(function (){
+                lastData += Math.random() * ((Math.round(Math.random() * 10) % 2) == 0 ? 1 : -1);
+                lastData = lastData.toFixed(1) - 0;
+                axisData = (new Date()).toLocaleTimeString().replace(/^\D*/,'');
+                // 动态数据接口 addData
+                hotRankingChart.addData([
+                    [
+                        0,        // 系列索引
+                        Math.round(Math.random() * 10), // 新增数据
+                        false,     // 新增数据是否从队列头部插入
+                        false,     // 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                        axisData
                     ],
-                    series: [{
-                        type: "line",
-                        symbol: "none",
-                        data: [2, 3, 1, 23, 12, 7, 23],
-                        name: "微博数",
-                        itemStyle: {
-                            normal: {
-                                color: "#f9b03c",
-                                lineStyle: { width: 1 },
-                                areaStyle: {
-                                    color: (function (){
-                                        var zrColor = require('zrender/tool/color');
-                                        return zrColor.getLinearGradient(
-                                            0, 200, 0, 400,
-                                            [[0, 'rgba(249,176,60,0.1)'],[0.8, 'rgba(255,255,255,0)']]
-                                        )
-                                    })()
-                                }
-                            }
-                        }
-                    },{
-                        type: "line",
-                        symbol: "none",
-                        yAxisIndex: 1,
-                        data:[2000,300,1200,200,500,342,523],
-                        name: "关注度",
-                        itemStyle: {
-                            normal: {
-                                lineStyle: { width: 1 },
-                                color: "#327cc0"
-                            }
-                        }
-                    }
+                    [
+                        1,        // 系列索引
+                        lastData, // 新增数据
+                        false,    // 新增数据是否从队列头部插入
+                        false,    // 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
+                        axisData  // 坐标轴标签
                     ]
-                };
-                var sentimentOption = {
-                    tooltip: {
-                        trigger: "axis",
-                        showDelay: 0,
-                        borderRadius: 0,
-                        borderWidth: 1,
-                        borderColor: "#504026",
-                        backgroundColor: "#242322",
-                        textStyle: {fontSize: "10"},
-                        axisPointer: {
-                            type: "line",
-                            lineStyle: {
-                                color: "#666666",
-                                type: "dashed",
-                                width: 2
-                            }
-                        },
-                        formatter: function (params) {
-                            return params[0].name + ':<br><span style="color:#a455a9">' + params[0].seriesName + '： </span>' + params[0].value;
-                        }
-                    },
-                    grid: {
-                        backgroundColor: "#1b2129",
-                        x: 50,
-                        y: 5,
-                        x2: 50,
-                        y2: 20,
-                        borderWidth: 0
-                    },
-                    xAxis: [{
-                        show: false,
-                        axisLine: {
-                            show: false
-                        },
-                        data: ["2015-06-2", "2015-06-03", "2015-06-04", "2015-06-05", "2015-06-06", "2015-06-07", "2015-06-08"]
-                    }],
-                    yAxis: [{
-                        min: -100,
-                        max: 100,
-                        type: "value",
-                        show: true,
-                        axisLine: {
-                            show: false
-                        },
-                        axisLabel: {
-                            textStyle: {color: "#ccc"}
-                        },
-                        splitLine: {
-                            show: true,
-                            lineStyle: {
-                                color: "#333333",
-                                width: 1
-                            }
-                        },
-                        splitArea: {
-                            show: true,
-                            areaStyle: {
-                                color: [
-                                    "#2f1e1c",
-                                    "#1b2129"
-                                ]
-                            }
-                        },
-                        splitNumber: 2
-                    }],
-                    series: [{
-                        type: "line",
-                        name: "情感值",
-                        symbol: "none",
-                        data: [20, -23, -51, 23, 12, 77, 23],
-                        itemStyle: {
-                            normal: {
-                                color: "#a455a9",
-                                lineStyle: { width: 1 }
-                            }
-                        }
-                    }]
+                ]);
+            }, 5000);
 
-                }
+            weiboCountChart.on(ecConfig.EVENT.CLICK, function(param) {
+                var date = param.name;
+                console.log(date);
+                //TODO 获取当天的关联微博
+                Weibo.getRelatedWeibo({}, function(_res) {
 
-                console.log(ecConfig);
-                //console.log(sentimentChart.on);
-                function handler(param) {
-                    console.log(param);
-                    console.log("clicked");
-                    sentimentChart.showTip();
-                }
-                sentimentChart.on(ecConfig.EVENT.CLICK, handler);
-
-                weiboCountChart.setOption(weiboCountOption);
-                sentimentChart.setOption(sentimentOption, true);
-
-                //weiboCountChart.connect([sentimentChart]);
-                //sentimentChart.connect([weiboCountChart]);
-
+                    $scope.relatedWeibo = _res.related;
+                    console.log($scope.relatedWeibo);
+                });
             });
-        })();
+
+        });
 
     }])
     .filter('sentimentFilter', function () {
@@ -320,200 +114,57 @@ angular.module("weibo.controllers", [])
             $(".wb-sentiment:eq(" + index + ")").append("<br>");
         };
     })
-    .controller('financialSentimentCtrl', ["$scope", function ($scope) {
-        console.log("financialSentiment");
-        (function() {
-            require.config({
-                paths: {
-                    echarts: 'application/resource/plugins/echarts' ,
-                    zrender: 'application/resource/plugins/zrender'
-                }
-                //paths: { echarts: 'http://echarts.baidu.com/build/dist' }
+    .controller('financialSentimentCtrl', ["$scope", "Weibo", function ($scope, Weibo) {
+        Weibo.getStock({}, function(_res) {
+            $scope.stockList = _res.stock_list;
+        });
+
+        $scope.period = 0;
+
+        //初始化表格
+        require.config({
+            paths: {echarts: "application/resource/plugins/source"}
+        });
+        require([
+            'echarts',
+            'echarts/chart/line'
+        ], function(echarts) {
+            var ecConfig = require("echarts/config");
+            var sentimentChart = echarts.init(document.getElementById("sentiment-chart"));
+            var weiboCountChart = echarts.init(document.getElementById("weibo-count-chart"));
+
+            stockSentimentChartConfig.weiboCountOption.series[0].itemStyle.normal.areaStyle.color = (function (){
+                var zrColor = require('zrender/tool/color');
+                return zrColor.getLinearGradient(
+                    0, 200, 0, 400,
+                    [[0, 'rgba(249,176,60,0.1)'],[0.8, 'rgba(255,255,255,0)']]
+                )
+            })();
+
+            sentimentChart.setOption(stockSentimentChartConfig.sentimentOption);
+            weiboCountChart.setOption(stockSentimentChartConfig.weiboCountOption);
+
+            weiboCountChart.connect([sentimentChart]);
+            sentimentChart.connect([weiboCountChart]);
+
+            weiboCountChart.on(ecConfig.EVENT.CLICK, function(param) {
+                var date = param.name;
+                console.log(date);
+                //TODO 获取当天的关联微博
+                Weibo.getRelatedWeibo({}, function(_res) {
+
+                    $scope.relatedWeibo = _res.related;
+                    console.log($scope.relatedWeibo);
+                });
             });
-
-            // 使用
-            require(
-                [
-                    'echarts',
-                    'echarts/chart/tree'
-                ],
-                function (ec) {
-                    // 基于准备好的dom，初始化echarts图表
-                    var rn = ec.init(document.getElementById('relationship-network'));
-                    var option = {
-                        title : {
-                            text: '关联股票网'
-                        },
-                        calculable : false,
-
-                        series : [
-                            {
-                                name:'树图',
-                                type:'tree',
-                                direction: 'inverse',
-                                orient: 'horizontal',  // vertical horizontal
-                                rootLocation: {x: 230,y: 'center'}, // 根节点位置  {x: 100, y: 'center'},
-                                layerPadding: 70,
-                                nodePadding: 70,
-                                symbolSize: 10,
-                                itemStyle: {
-                                    normal: {
-                                        label: {
-                                            show: true,
-                                            formatter: "{b}",
-                                            textStyle: {
-                                                fontSize: 14,
-                                                color: '#cccccc'
-                                            }
-                                        },
-                                        lineStyle: {
-                                            color: '#cccccc',
-                                            shadowColor: '#000',
-                                            shadowBlur: 3,
-                                            shadowOffsetX: 3,
-                                            shadowOffsetY: 5,
-                                            type: 'curve' // 'curve'|'broken'|'solid'|'dotted'|'dashed'
-
-                                        }
-                                    },
-                                    emphasis: {
-                                        label: {
-                                            show: true,
-                                            textStyle: {
-                                                fontSize: 14,
-                                                color: '#cccccc'
-                                            }
-                                        }
-                                    }
-                                },
-
-                                data: [
-                                    {
-                                        name: '根节点',
-                                        value: 6,
-                                        children: [
-                                            {
-                                                name: '节点啊啊',
-                                                value: 4,
-                                                emotion: 20,
-                                                labelPosition: 'left'
-                                            },
-                                            {
-                                                name: '节点啊啊啊',
-                                                value: 4,
-                                                emotion: -30,
-                                                labelPosition: 'left'
-                                            },
-                                            {
-                                                name: '节点',
-                                                value: 1,
-                                                emotion: 40,
-                                                labelPosition: 'left'
-                                            }
-                                        ]
-                                    }
-                                ]
-                            },
-                            {
-                                name:'树图',
-                                type:'tree',
-                                orient: 'horizontal',  // vertical horizontal
-                                rootLocation: {x: 230,y: 'center'}, // 根节点位置  {x: 100, y: 'center'}
-                                layerPadding: 200,
-                                nodePadding: 25,
-                                symbolSize: 10,
-                                itemStyle: {
-                                    normal: {
-                                        label: {
-                                            show: true,
-                                            formatter: "{b}",
-                                            textStyle: {
-                                                fontSize: 14,
-                                                color: '#cccccc'
-                                            }
-                                        },
-                                        lineStyle: {
-                                            color: '#cccccc',
-                                            shadowColor: '#000',
-                                            shadowBlur: 3,
-                                            shadowOffsetX: 3,
-                                            shadowOffsetY: 5,
-                                            type: 'curve' // 'curve'|'broken'|'solid'|'dotted'|'dashed'
-
-                                        }
-                                    },
-                                    emphasis: {
-                                        label: {
-                                            show: true,
-                                            textStyle: {
-                                                fontSize: 14,
-                                                color: '#cccccc'
-                                            }
-                                        }
-                                    }
-                                },
-
-                                data: [
-                                    {
-                                        name: '',
-                                        value: 6,
-                                        children: [
-                                            {
-                                                name: '节点啊啊',
-                                                value: 4,
-                                                emotion: 20,
-                                                labelPosition: 'right'
-                                            },
-                                            {
-                                                name: '节点啊啊啊',
-                                                value: 4,
-                                                emotion: -30,
-                                                labelPosition: 'right'
-                                            },
-                                            {
-                                                name: '节点',
-                                                value: 1,
-                                                emotion: 40,
-                                                labelPosition: 'right'
-                                            },
-                                            {
-                                                name: '节点啊',
-                                                value: 1,
-                                                emotion: -10,
-                                                labelPosition: 'right'
-                                            },
-                                            {
-                                                name: '节点啊',
-                                                value: 1,
-                                                emotion: -10,
-                                                labelPosition: 'right'
-                                            },
-                                            {
-                                                name: '节点啊',
-                                                value: 1,
-                                                emotion: -10,
-                                                labelPosition: 'right'
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
-                    };
-                require(['application/resource/plugins/echarts/theme/dark'], function(tarTheme){
-                    rn.setTheme(tarTheme);
-                })
-                rn.setOption(option);
-    }
-)
-})();
-}])
-.controller('weiboAnalysisCtrl', ["$scope", function ($scope) {
-    $scope.period = 0;
-    // 添加瀑布流数据
-    $scope.pics = [
-        {
-            "title": "1. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
+        });
+    }])
+    .controller('weiboAnalysisCtrl', ["$scope", function ($scope) {
+        $scope.period = 0;
+        // 添加瀑布流数据
+        $scope.pics = [
+            {
+                "title": "1. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
                 "image": "application/resource/images/pic.png",
                 "affectedSector": "金融（1级）贸易（2级）农业（-2级）",
                 "affectedStock": "中国软件（1级）"
