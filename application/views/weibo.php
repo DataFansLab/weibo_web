@@ -16,7 +16,7 @@
     <script type="text/javascript" src="application/resource/plugins/jquery-2.1.4.js"></script>
     <script type="text/javascript" src="application/resource/plugins/angular.js"></script>
     <script type="text/javascript" src="application/resource/plugins/angular-route.js"></script>
-    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.19/angular-resource.js">
+    <script src="application/resource/plugins/angular-resource.js">
     </script>
     <script type="text/javascript" src="application/resource/js/services/weibo.js"></script>
     <script type="text/javascript" src="application/resource/js/controller/weibo.js"></script>
