@@ -1,6 +1,8 @@
-<link rel="stylesheet" href="application/resource/css/semantic/grid.min.css">
-<link rel="stylesheet" href="application/resource/css/semantic/image.min.css">
-<link rel="stylesheet" href="application/resource/css/semantic/table.min.css">
+<link rel="stylesheet" href="application/resource/plugins/semantic-ui/grid.min.css">
+<link rel="stylesheet" href="application/resource/plugins/semantic-ui/image.min.css">
+<link rel="stylesheet" href="application/resource/plugins/semantic-ui/table.min.css">
+<link rel="stylesheet" href="application/resource/plugins/semantic-ui/transition.min.css">
+<script type="text/javascript" src="application/resource/plugins/semantic-ui/transition.min.js"></script>
 <div class="bar weibo analysis">
     <ul>
         <li ng-class="{active: period == 0}" ng-click="period = 0">最近一天</li>
@@ -11,10 +13,9 @@
     <div class="column left">
         <div class="ui four column grid pics">
             // 迭代开始
-            <div class="column" ng-repeat="pic in pics">
+            <div class="column" ng-repeat="pic in pics" on-finish-render="ngRepeatFinished">
                 <div class="ui box">
-                    <div class="inner-box">
-                        <img ng-src="{{pic.image}}" class="ui fluid image">
+                    <div class="inner-box" ng-style="{ 'background-image': 'url(' + pic.image + ')'}">
                         <div class="title">{{pic.title}}</div>
                     </div>
                     <div class="affect">
@@ -28,16 +29,17 @@
         </div>
     </div>
     <div class="column right">
-        <div class="table title">股票微舆情关注榜</div>
-        <table class="ui very basic table up">
-            <thead>
+        <div class="rank table">
+            <div class="table title">股票微舆情关注榜</div>
+            <table class="ui very basic table up">
+                <thead>
                 <tr><th class="rank">排名</th>
                     <th class="stock name">股票名称</th>
                     <th class="influence">影响力</th>
                     <th class="emotion">话题情绪</th>
                     <th class="topics">热议话题</th></tr>
-            </thead>
-            <tbody>
+                </thead>
+                <tbody>
                 <tr ng-repeat="rank in rankUp | orderBy: '-effect'">
                     <td><div class="rank">{{$index + 1}}</div></td>
                     <td class="stock name">{{rank.stockName}}</td>
@@ -45,18 +47,20 @@
                     <td><div class="{{rank.emotion | emotion}}"></div></td>
                     <td>{{rank.topics}}</td>
                 </tr>
-            </tbody>
-        </table>
-        <div class="table title">股票微舆情负面预警</div>
-        <table class="ui very basic table down">
-            <thead>
-            <tr><th class="rank">排名</th>
-                <th class="stock name">股票名称</th>
-                <th class="influence">影响力</th>
-                <th class="emotion">话题情绪</th>
-                <th class="topics">热议话题</th></tr>
-            </thead>
-            <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div class="rank table">
+            <div class="table title">股票微舆情负面预警</div>
+            <table class="ui very basic table down">
+                <thead>
+                <tr><th class="rank">排名</th>
+                    <th class="stock name">股票名称</th>
+                    <th class="influence">影响力</th>
+                    <th class="emotion">话题情绪</th>
+                    <th class="topics">热议话题</th></tr>
+                </thead>
+                <tbody>
                 <tr ng-repeat="rank in rankDown | orderBy: 'emotion'">
                     <td><div class="rank">{{$index + 1}}</div></td>
                     <td class="stock name">{{rank.stockName}}</td>
@@ -64,7 +68,8 @@
                     <td><div class="{{rank.emotion | emotion}}"></div></td>
                     <td>{{rank.topics}}</td>
                 </tr>
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

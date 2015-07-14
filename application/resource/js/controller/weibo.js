@@ -186,77 +186,91 @@ angular.module("weibo.controllers", [])
                 }
             )
         })();
-}])
-.controller('weiboAnalysisCtrl', ["$scope", function ($scope) {
-    $scope.period = 0;
-    // 添加瀑布流数据
-    $scope.pics = [
-        {
-            "title": "1. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
-                "image": "application/resource/images/pic.png",
-                "affectedSector": "金融（1级）贸易（2级）农业（-2级）",
-                "affectedStock": "中国软件（1级）"
-            },
-            {
-                "title": "2. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
-                "image": "application/resource/images/pic.png",
-                "affectedSector": "金融（1级）贸易（2级）农业（-2级）",
-                "affectedStock": "中国软件（1级）"
-            },
-            {
-                "title": "3. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
-                "image": "application/resource/images/pic.png",
-                "affectedSector": "金融（1级）贸易（2级）农业（-2级）",
-                "affectedStock": "中国软件（1级）"
-            },
-            {
-                "title": "4. 财经周刊微博：就铁路运输签署战略合作协议，金属、贸易、金融股票收益",
-                "image": "application/resource/images/pic.png",
-                "affectedSector": "金融（1级）贸易（2级）农业（-2级）",
-                "affectedStock": "中国软件（1级）"
+    }])
+    .controller('weiboAnalysisCtrl', ["$scope", "Weibo", function ($scope, Weibo) {
+        $scope.period = 0;
+        Weibo.getWeiboTopic({type: 'getEvents', time: 'day', startTime: '2015-07-07'}, function(_res) {
+            var events = _res.events;
+
+            // 添加瀑布流数据
+            $scope.pics = new Array();
+            if (events) {
+                for (var index in events) {
+                    // 数据准备
+                    var event = events[index];
+                    var title = event.topic;
+                    var num = Math.ceil( Math.random() * 5 );
+                    var affectedSector = '';
+                    var affectedStock = '';
+                    for (var sector in event.related_stock) {
+                        affectedSector += sector + '（' + event.related_stock[sector] + '）';
+                    }
+                    for (var stock in event.related_industry) {
+                        affectedStock += stock + '（' + event.related_industry[stock] + '）';
+                    }
+                    // push操作
+                    $scope.pics.push({
+                        "title": title,
+                        "image": "application/resource/images/" + num + ".png",
+                        "affectedSector": affectedSector,
+                        "affectedStock": affectedStock
+                    });
+                }
             }
-        ];
+        });
+        // Rank Up
         // 万以上的就精确到万，万以下的就精确到个位
-        $scope.rankUp = [
-            {
-                "stockName": "招商银行",
-                "effect": 310000,
-                "emotion": 50,
-                "topics": "P2P 金融 利率"
-            },
-            {
-                "stockName": "中国银行",
-                "effect": 2900000,
-                "emotion": 100,
-                "topics": "P2P 金融 利率"
-            },
-            {
-                "stockName": "工商银行",
-                "effect": 600000,
-                "emotion": 80,
-                "topics": "P2P 金融 利率"
+        Weibo.getWeiboTopic({type: 'getRank', time: 'day', startTime: '2015-07-05'}, function(_res) {
+            var rankUp = _res.stock_rank;
+            // 加载rank up数据
+            // 按影响力由大到小
+            $scope.rankUp = new Array();
+            if (rankUp) {
+                for (var index in rankUp) {
+                    // 数据准备
+                    var item = rankUp[index];
+                    var stockName = item.stock_name;
+                    var effect = parseInt(item.influence);
+                    var emotion = parseInt(item.sentiment);
+                    var topics = item.topic.replace(new RegExp("\\+","gm"), " ");
+                    // push
+                    $scope.rankUp.push({
+                        "stockName": stockName,
+                        "effect": effect,
+                        "emotion": emotion,
+                        "topics": topics
+                    });
+                }
             }
-        ];
-        $scope.rankDown = [
-            {
-                "stockName": "招商银行",
-                "effect": 310000,
-                "emotion": -50,
-                "topics": "P2P 金融 利率"
-            },
-            {
-                "stockName": "中国银行",
-                "effect": 2900000,
-                "emotion": -100,
-                "topics": "P2P 金融 利率"
-            },
-            {
-                "stockName": "工商银行",
-                "effect": 600000,
-                "emotion": -80,
-                "topics": "P2P 金融 利率"
+        });
+        // Rank Down
+        Weibo.getWeiboTopic({type: 'getNRank', time: 'day', startTime: '2015-07-05'}, function(_res) {
+            var rankDown = _res.stock_nrank;
+            // 加载rank down数据
+            // 按话题情绪绝对值由大到小
+            $scope.rankDown = new Array();
+            if (rankDown) {
+                for (var index in rankDown) {
+                    // 数据准备
+                    var item = rankDown[index];
+                    var stockName = item.stock_name;
+                    var effect = parseInt(item.influence);
+                    var emotion = parseInt("-" + item.sentiment);
+                    var topics = item.topic.replace(new RegExp("\\+","gm"), " ");
+                    // push
+                    $scope.rankDown.push({
+                        "stockName": stockName,
+                        "effect": effect,
+                        "emotion": emotion,
+                        "topics": topics
+                    });
+                }
             }
-        ];
+        });
+        $scope.$on('ngRepeatFinished', function () {
+            $(".ui.box").transition("fade up", "1s");
+            $(".rank.table").transition("fade up", "1s");
+        });
         console.log("weiboAnalysisCtrl");
     }])
     .filter('emotion', function() {
@@ -282,4 +296,16 @@ angular.module("weibo.controllers", [])
             if (input > 10000) input = parseInt(input / 10000) + '万';
             return input;
         };
+    })
+    .directive('onFinishRender', function ($timeout) {
+        return {
+            restrict: 'A',
+            link: function (scope) {
+                if (scope.$last === true) {
+                    $timeout(function () {
+                        scope.$emit('ngRepeatFinished');
+                    });
+                }
+            }
+        }
     });
