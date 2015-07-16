@@ -324,6 +324,8 @@ ul {
 }
 .ui.grid.weibo.analysis .column.left {
     width: 1000px;
+    height: 800px;
+    overflow-y: scroll;
 }
 .ui.grid.weibo.analysis .column.right {
     width: 410px;
@@ -346,17 +348,19 @@ ul {
     background-color: #2B2A2A;
     width: 220px;
     height: 277px;
+    display: none;
 }
 .ui.box .inner-box {
     height: 170px;
     margin-bottom: 10px;
     overflow: hidden;
+    background-size: cover;
 }
 .inner-box .title {
     width: 200px;
     padding: 5px 10px 5px 10px;
     position: absolute;
-    bottom: 122px;
+    bottom: 117px;
     background: rgba(0, 0, 0, 0.7);
 }
 .ui.box .affect {
@@ -364,6 +368,10 @@ ul {
 }
 .ui.box .affect span.label {
     color: #69bfde;
+}
+.rank.table {
+    height: 400px;
+    display: none;
 }
 .weibo.analysis table {
     background-color: transparent !important;
