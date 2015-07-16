@@ -13,12 +13,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>社交金融</title>
     <link rel="stylesheet" href="application/resource/css/style.css">
+    <link rel="stylesheet" href="application/resource/plugins/ng-dialog/css/ngDialog.min.css">
+    <link rel="stylesheet" href="application/resource/plugins/ng-dialog/css/ngDialog-theme-default.css">
     <script type="text/javascript" src="application/resource/plugins/jquery-2.1.4.js"></script>
     <script type="text/javascript" src="application/resource/plugins/angular.js"></script>
     <script type="text/javascript" src="application/resource/plugins/angular-route.js"></script>
-    <script src="application/resource/plugins/angular-resource.js">
-    </script>
+    <script src="application/resource/plugins/angular-resource.js"></script>
+    <script src="application/resource/plugins/ng-dialog/js/ngDialog.min.js"></script>
     <script type="text/javascript" src="application/resource/js/services/weibo.js"></script>
+    <script type="text/javascript" src="application/resource/js/services/user.js"></script>
     <script type="text/javascript" src="application/resource/js/controller/weibo.js"></script>
     <script type="text/javascript" src="application/resource/js/route/weibo.js"></script>
     <script type="text/javascript" src="application/resource/js/weibo.js"></script>

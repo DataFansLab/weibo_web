@@ -1,22 +1,74 @@
 
-angular.module("weibo.controllers", [])
+angular.module("weibo.controllers", ["ngDialog"])
     .controller('picInfoCtrl', ["$scope", function($scope){
         console.log("picInfoCtrl");
     }])
-    .controller('stockSentimentCtrl', ["$scope", "Weibo", function ($scope, Weibo) {
+    .controller('stockSentimentCtrl', ["$scope", "Weibo", "User", "ngDialog", function ($scope, Weibo, User, ngDialog) {
         //test interface
-        Weibo.getStock({}, function(_res) {
+        User.getStockJobs({
+            type: "getStock",
+            userid: "tangye"
+        }, function(_res) {
             $scope.stockList = _res.stock_list;
         });
 
-        var PERIOD_TYPE = {
+        /*var PERIOD_TYPE = {
             singleWeek: 0,
             doubleWeek: 1,
             singleMonth: 2,
             all: 3
-        };
+        };*/
         $scope.period = 0;
-        
+        var startTime,
+            endTime;
+
+        $scope.switchPeriod = function(_period) {
+            $scope.period = _period;
+
+            var today = new Date("2015-3-28");
+            endTime = dateFormat(today);
+            var fromDate;
+            switch(_period) {
+                //最近一周
+                case 0:
+                    fromDate = new Date(today.setDate(today.getDate() - 7));
+                    break;
+                //最近两周
+                case 1:
+                    fromDate = new Date(today.setDate(today.getDate() - 14));
+                    break;
+                //最近一月
+                case 2:
+                    fromDate = new Date(today.setMonth(today.getMonth() - 1));
+                    break;
+            }
+            startTime = dateFormat(fromDate);
+
+            Weibo.getStockInfo({
+                type: "getStockInfo",
+                stockcode: "000050",
+                startTime: "2015-03-23 00:00:00",
+                endTime: "2015-03-23 24:00:00"
+            }, function(_res) {
+                console.log(_res);
+            });
+
+        }
+
+        $scope.switchPeriod(0);
+
+        $scope.addStock = function(){
+            ngDialog.open({
+                template: "application/resource/js/templates/addStockFormTemplate.html"
+            });
+        }
+
+        function dateFormat(date) {
+            var month = date.getMonth() + 1;
+            month < 10 ? month = "0" + month : month = month;
+            return date.getFullYear() + "-" + month + "-" + date.getDate();
+        }
+
         $scope.SNSKeyword = [{keyword: "央企改革"}, {keyword: "互联网金融"}, {keyword: "互联网金融"}, {keyword: "银行"}, {keyword: "税改"}, {keyword: "一带一路"}, {keyword: "以房养老"}];
         $scope.SNSKeyword.forEach(function(item, index){
             var colors = ["sliver", "red", "green"],
@@ -115,9 +167,9 @@ angular.module("weibo.controllers", [])
         };
     })
     .controller('financialSentimentCtrl', ["$scope", "Weibo", function ($scope, Weibo) {
-        Weibo.getStock({}, function(_res) {
-            $scope.stockList = _res.stock_list;
-        });
+        //Weibo.getStock({}, function(_res) {
+           // $scope.stockList = _res.stock_list;
+        //});
 
         $scope.period = 0;
 

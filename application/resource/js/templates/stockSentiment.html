@@ -1,7 +1,7 @@
 <div class="container clearfix">
     <div class="list">
         <ul>
-            <li class="item add-stock">
+            <li class="item add-stock" ng-click="addStock()">
                 <p class="stock-name"><img src="application/resource/images/icon_add.png" class="icon-add">添加股票</p>
             </li>
             <li class="item" ng-repeat="stock in stockList">
@@ -14,10 +14,10 @@
     <div class="right-container">
         <div class="bar">
             <ul>
-                <li ng-class="{active: period == 0}" ng-click="period = 0">最近一周</li>
-                <li ng-class="{active: period == 1}" ng-click="period = 1">最近两周</li>
-                <li ng-class="{active: period == 2}" ng-click="period = 2">最近一月</li>
-                <li ng-class="{active: period == 3}" ng-click="period = 3">全部</li>
+                <li ng-class="{active: period == 0}" ng-click="switchPeriod(0)">最近一周</li>
+                <li ng-class="{active: period == 1}" ng-click="switchPeriod(1)">最近两周</li>
+                <li ng-class="{active: period == 2}" ng-click="switchPeriod(2)">最近一月</li>
+                <li ng-class="{active: period == 3}" ng-click="switchPeriod(3)">全部</li>
             </ul>
         </div>
         <div class="chart-container">
