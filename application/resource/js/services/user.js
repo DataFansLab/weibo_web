@@ -4,6 +4,14 @@ angular.module('weibo.service.user',['ngResource'])
             getStockJobs: {
                 method: "GET",
                 url: "http://10.109.247.65:8080/WeiboCluster/servlet/TaskServletTest"
+            },
+            getStock: {
+                method: "GET",
+                url: "http://10.109.247.65:8080/WeiboCluster/servlet/TaskServletTest"
+            },
+            addStock: {
+                method: "GET",
+                url: "http://10.109.247.65:8080/WeiboCluster/servlet/TaskServletTest"
             }
         })
     }]);
