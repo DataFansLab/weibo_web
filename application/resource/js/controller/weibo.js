@@ -4,30 +4,65 @@ angular.module("weibo.controllers", ["ngDialog"])
         console.log("picInfoCtrl");
     }])
     .controller('stockSentimentCtrl', ["$scope", "Weibo", "User", "ngDialog", function ($scope, Weibo, User, ngDialog) {
-        //test interface
-        User.getStockJobs({
-            type: "getStock",
-            userid: "tangye"
-        }, function(_res) {
-            $scope.stockList = _res.stock_list;
-        });
+        $scope.period = -1; //singleWeek: 0,doubleWeek: 1,singleMonth: 2,all: 3
+        $scope.currentStockCode;
+        $scope.stockAnalysis;
+        $scope.relatedWeibo = [];
+        $scope.rank = {};
 
-        /*var PERIOD_TYPE = {
-            singleWeek: 0,
-            doubleWeek: 1,
-            singleMonth: 2,
-            all: 3
-        };*/
-        $scope.period = 0;
-        var startTime,
-            endTime;
+        var startTime, //时间跨度起始时间
+            endTime,  //时间跨度结束时间
+            sentimentData = [],
+            weiboCountData = [],
+            influenceData = [],
+            rankData = {board: [], industry: []},
+            timeline = [],
+            sentimentChart = null,
+            weiboCountChart = null,
+            hotRankingChart = null;
 
-        $scope.switchPeriod = function(_period) {
+        //获取用户的关注的股票
+        function getStocks() {
+            User.getStockJobs({
+                type: "getStock",
+                usrid: "tangye"
+            }, function (_res) {
+                $scope.stockList = _res.usr_task;
+                $scope.currentStockCode = $scope.stockList[0].stock_code;
+                $scope.switchPeriod(0);
+            });
+        }
+
+        getStocks();
+
+        //用户切换时间跨度
+        $scope.switchPeriod = function(_period, force) {
+            if(_period == $scope.period && !force)
+                return;
+
             $scope.period = _period;
 
-            var today = new Date("2015-3-28");
-            endTime = dateFormat(today);
+            var today = new Date("2015-04-03");
             var fromDate;
+
+            endTime = dateFormat(today);
+            timeline.length = 0;
+            sentimentData.length = 0;
+            weiboCountData.length = 0;
+            influenceData.length = 0;
+
+            if(sentimentChart) {
+                sentimentChart.clear();
+                weiboCountChart.clear();
+
+                weiboCountChart.showLoading({
+                    text: '正在努力的读取数据中...'
+                });
+                hotRankingChart.showLoading({
+                    text: '正在努力的读取数据中...'
+                });
+            }
+
             switch(_period) {
                 //最近一周
                 case 0:
@@ -46,100 +81,198 @@ angular.module("weibo.controllers", ["ngDialog"])
 
             Weibo.getStockInfo({
                 type: "getStockInfo",
-                stockcode: "000050",
-                startTime: "2015-03-23 00:00:00",
-                endTime: "2015-03-23 24:00:00"
+                stockcode: $scope.currentStockCode,
+                startTime: startTime,
+                endTime: endTime
             }, function(_res) {
                 console.log(_res);
+                $scope.stockAnalysis = _res;
+                //TODO初始化表格数据
+                $scope.relatedWeibo = _res.stock_analysis[0].related_weibo;
+
+                for(var i in _res.stock_analysis[0].social_words) {
+                    var word = _res.stock_analysis[0].social_words[i];
+                    var classes;
+                    //情感
+                    if(word[1] == 0)
+                        classes = "silver ";
+                    else
+                        classes = word[1] > 0 ? "red " : "green ";
+                    if(word[2] < 10)
+                        classes += "font12";
+                    else if(word[2] < 15)
+                        classes += "font14";
+                    else if(word[2] < 20)
+                        classes += "font16";
+                    else if(word[2] < 40)
+                        classes += "font20";
+                    else
+                        classes += "font24";
+                    word.push(classes);
+                }
+
+                $scope.socialWords = _res.stock_analysis[0].social_words;
+
+                for(var index in _res.stock_analysis) {
+                    var analysis = _res.stock_analysis[index];
+                    var date = analysis.date.split(" ")[0];
+                    sentimentData.push(analysis.sentiment);
+                    weiboCountData.push(analysis.weibo_count);
+                    influenceData.push(analysis.influence);
+                    rankData.board.push(analysis.rankA);
+                    rankData.industry.push(analysis.rankIndustry);
+                    timeline.push(date);
+                }
+                $scope.rank = {
+                    boardRank: rankData.board[index],
+                    industryRank: rankData.industry[index],
+                    industry: _res.stock_analysis[0].industry
+
+                };
+
+                stockSentimentChartConfig.sentimentOption.xAxis[0].data
+                    = stockSentimentChartConfig.weiboCountOption.xAxis[0].data
+                    = stockSentimentChartConfig.hotRankingOption.xAxis[0].data
+                    = timeline;
+                stockSentimentChartConfig.sentimentOption.series[0].data = sentimentData;
+                stockSentimentChartConfig.weiboCountOption.series[0].data = weiboCountData;
+                stockSentimentChartConfig.weiboCountOption.series[1].data = influenceData;
+                stockSentimentChartConfig.hotRankingOption.series[0].data = rankData.board;
+                stockSentimentChartConfig.hotRankingOption.series[1].data = rankData.industry;
+
+                if(!sentimentChart)
+                    initChart();
+                else {
+                    weiboCountChart.hideLoading();
+                    hotRankingChart.hideLoading();
+                    sentimentChart.setOption(stockSentimentChartConfig.sentimentOption);
+                    weiboCountChart.setOption(stockSentimentChartConfig.weiboCountOption);
+                    hotRankingChart.setOption(stockSentimentChartConfig.hotRankingOption);
+                }
+
             });
 
         }
 
-        $scope.switchPeriod(0);
+        $scope.switchStock = function(index) {
+            $scope.currentStockCode = $scope.stockList[index].stock_code;
+            $scope.switchPeriod(0, true);
+        }
+
+        //添加股票
         $scope.addStock = function(){
-            ngDialog.open({
-                template: "application/resource/js/templates/addTaskFormTemplate.html"
+            var dialog = ngDialog.open({
+                template: "application/resource/js/templates/addStockTemplate.html",
+                showClose: false,
+                controller: ['$scope', 'User', function($scope, User) {
+                    var searchCondition = {
+                        type: "getStockIntro",
+                        stockID: "null",
+                        stockName: "null",
+                        stockCategory: "null"
+                    };
+                    $scope.stockList = [];
+                    $scope.condition = "";
+                    $scope.stockToAdd = null;
+
+                    $scope.selectStock = function($index) {
+                        $scope.stockToAdd = $scope.stockList[$index];
+                        $scope.condition = $scope.stockList[$index].stock_code + "," + $scope.stockList[$index].stock_name;
+                    }
+
+                    $scope.confirmChoice = function() {
+                        if(!$scope.stockToAdd)
+                            return;
+                        User.addStock({
+                            type: "saveStock",
+                            usrid: "tangye",
+                            stock_code: $scope.stockToAdd.stock_code,
+                            stock_name: $scope.stockToAdd.stock_name,
+                            industry: $scope.stockToAdd.industry
+                        }, function(){
+                            alert("添加成功");
+                            $scope.closeThisDialog();
+                        }, function() {
+                            alert("添加股票失败")
+                        })
+                    }
+
+                    $scope.$watch('condition', function(newCondition, oldCondition) {
+                        if(newCondition == oldCondition)
+                            return;
+                        if(newCondition.indexOf(",") != -1)
+                            return;
+                        if(isNaN(newCondition)) {
+                            searchCondition.stockID = "null";
+                            searchCondition.stockName = newCondition;
+                        }
+                        if(!isNaN(newCondition)) {
+                            searchCondition.stockName = "null";
+                            searchCondition.stockID = newCondition;
+                        }
+                        $scope.stockToAdd = null;
+                        User.getStock( searchCondition, function(_stocks) {
+                            $scope.stockList = _stocks.stock_answer;
+                        }, function(err) {});
+                    })
+                }]
             });
-        };
-        function dateFormat(date) {
-            var month = date.getMonth() + 1;
-            month < 10 ? month = "0" + month : month = month;
-            return date.getFullYear() + "-" + month + "-" + date.getDate();
+
+            dialog.closePromise.then(function() {
+                getStocks();
+            });
         }
 
-        $scope.SNSKeyword = [{keyword: "央企改革"}, {keyword: "互联网金融"}, {keyword: "互联网金融"}, {keyword: "银行"}, {keyword: "税改"}, {keyword: "一带一路"}, {keyword: "以房养老"}];
-        $scope.SNSKeyword.forEach(function(item, index){
-            var colors = ["sliver", "red", "green"],
-                font = ["font14", "font16", "font24"];
-            var i = index % 3;
-            item.classes = colors[i] + " " + font[i];
-        });
+        $scope.deleteStock = function() {
 
-        //初始化表格
-        require.config({
-            paths: {echarts: "application/resource/plugins/source"}
-        });
-        require([
-            'echarts',
-            'echarts/chart/line'
-        ], function(echarts) {
-            var ecConfig = require("echarts/config");
-            var sentimentChart = echarts.init(document.getElementById("sentiment-chart"));
-            var weiboCountChart = echarts.init(document.getElementById("weibo-count-chart"));
-            var hotRankingChart = echarts.init(document.getElementById("hot-ranking-chart"));
+        }
 
-            stockSentimentChartConfig.weiboCountOption.series[0].itemStyle.normal.areaStyle.color = (function (){
-                var zrColor = require('zrender/tool/color');
-                return zrColor.getLinearGradient(
-                    0, 200, 0, 400,
-                    [[0, 'rgba(249,176,60,0.1)'],[0.8, 'rgba(255,255,255,0)']]
-                )
-            })();
+        function dateFormat(date) {
+            var month = date.getMonth() + 1,
+                day = date.getDate();
+            month = month < 10 ?  "0" + month : month;
+            day = day < 10 ?  "0" + day : day;
+            return date.getFullYear() + "-" + month + "-" + day;
+        }
 
-            sentimentChart.setOption(stockSentimentChartConfig.sentimentOption);
-            weiboCountChart.setOption(stockSentimentChartConfig.weiboCountOption);
-            hotRankingChart.setOption(stockSentimentChartConfig.hotRankingOption);
-            weiboCountChart.connect([sentimentChart]);
-            sentimentChart.connect([weiboCountChart]);
+        $scope.refreshRelatedWeibo = function(index) {
+            $scope.relatedWeibo = $scope.stockAnalysis.stock_analysis[index].related_weibo;
+            $scope.$apply();
+        }
 
-            var lastData = 11;
-            var axisData;
-            timeTicket = setInterval(function (){
-                lastData += Math.random() * ((Math.round(Math.random() * 10) % 2) == 0 ? 1 : -1);
-                lastData = lastData.toFixed(1) - 0;
-                axisData = (new Date()).toLocaleTimeString().replace(/^\D*/,'');
-                // 动态数据接口 addData
-                hotRankingChart.addData([
-                    [
-                        0,        // 系列索引
-                        Math.round(Math.random() * 10), // 新增数据
-                        false,     // 新增数据是否从队列头部插入
-                        false,     // 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
-                        axisData
-                    ],
-                    [
-                        1,        // 系列索引
-                        lastData, // 新增数据
-                        false,    // 新增数据是否从队列头部插入
-                        false,    // 是否增加队列长度，false则自定删除原有数据，队头插入删队尾，队尾插入删队头
-                        axisData  // 坐标轴标签
-                    ]
-                ]);
-            }, 5000);
+        //初始化表格绘制
+        function initChart() {
+            require.config({
+                paths: {echarts: "application/resource/plugins/source"}
+            });
+            require([
+                'echarts',
+                'echarts/chart/line'
+            ], function (echarts) {
+                var ecConfig = require("echarts/config");
+                sentimentChart = echarts.init(document.getElementById("sentiment-chart"));
+                weiboCountChart = echarts.init(document.getElementById("weibo-count-chart"));
+                hotRankingChart = echarts.init(document.getElementById("hot-ranking-chart"));
 
-            weiboCountChart.on(ecConfig.EVENT.CLICK, function(param) {
-                var date = param.name;
-                console.log(date);
-                //TODO 获取当天的关联微博
-                Weibo.getRelatedWeibo({}, function(_res) {
+                stockSentimentChartConfig.weiboCountOption.series[0].itemStyle.normal.areaStyle.color = (function () {
+                    var zrColor = require('zrender/tool/color');
+                    return zrColor.getLinearGradient(
+                        0, 200, 0, 400,
+                        [[0, 'rgba(249,176,60,0.1)'], [0.8, 'rgba(255,255,255,0)']]
+                    )
+                })();
 
-                    $scope.relatedWeibo = _res.related;
-                    console.log($scope.relatedWeibo);
+                sentimentChart.setOption(stockSentimentChartConfig.sentimentOption);
+                weiboCountChart.setOption(stockSentimentChartConfig.weiboCountOption);
+                hotRankingChart.setOption(stockSentimentChartConfig.hotRankingOption);
+                weiboCountChart.connect([sentimentChart]);
+                sentimentChart.connect([weiboCountChart]);
+
+                weiboCountChart.on(ecConfig.EVENT.CLICK, function (param) {
+                    $scope.refreshRelatedWeibo(param.dataIndex);
                 });
             });
-
-        });
-
+        }
     }])
     .filter('sentimentFilter', function () {
         return function(value, index, trend){

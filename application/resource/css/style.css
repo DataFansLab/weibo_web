@@ -107,19 +107,57 @@ ul {
     font-size: 1.8rem;
     cursor: pointer;
 }
-.container .list .add-stock, .container .list .add-task {
+/*.container .list .add-stock, .container .list .add-task {*/
+    /*text-align: center;*/
+    /*line-height: 50px;*/
+/*}*/
+/*.add-stock .icon-add, .add-task .icon-add {*/
+    /*position: relative;*/
+    /*top: 5px;*/
+    /*margin-right: 10px;*/
+/*}*/
+/*.container .list .item:hover {*/
+    /*background-color: #327cc0;*/
+/*}*/
+/*.container .list .add-stock:hover, .container .list .add-task:hover {*/
+    /*background-color: #242322;*/
+/*}*/
+/*.container .list .delete-icon {*/
+    /*position: relative;*/
+    /*top: -10px;*/
+    /*float: right;*/
+    /*display: none;*/
+/*}*/
+/*.container .list .item:hover .delete-icon {*/
+    /*display: inline-block;*/
+/*}*/
+/*.item:hover .stock-id {*/
+    /*color: #ffffff;*/
+/*}*/
+/*.stock-name, .stock-id, .task-name, .task-keywords {*/
+    /*margin: 0;*/
+/*}*/
+/*.stock-id, .task-keywords {*/
+    /*margin-top: 10px;*/
+    /*font-size: 1.4rem;*/
+    /*color: #777777;*/
+/*}*/
+.container .list .add-stock {
     text-align: center;
     line-height: 50px;
 }
-.add-stock .icon-add, .add-task .icon-add {
+.add-stock .icon-add {
     position: relative;
     top: 5px;
     margin-right: 10px;
 }
+.container .list .item.blue {
+    background-color: #327cc0;
+}
 .container .list .item:hover {
     background-color: #327cc0;
 }
-.container .list .add-stock:hover, .container .list .add-task:hover {
+.container .list .add-stock:hover {
     background-color: #242322;
 }
 .container .list .delete-icon {
@@ -131,13 +169,13 @@ ul {
 .container .list .item:hover .delete-icon {
     display: inline-block;
 }
-.item:hover .stock-id {
+.container .list .item.blue .stock-id, .item:hover .stock-id {
     color: #ffffff;
 }
-.stock-name, .stock-id, .task-name, .task-keywords {
+.stock-name, .stock-id {
     margin: 0;
 }
-.stock-id, .task-keywords {
+.stock-id {
     margin-top: 10px;
     font-size: 1.4rem;
     color: #777777;
@@ -405,12 +443,12 @@ ul {
     width: 18px;
     border-radius: 3px;
 }
-.weibo.analysis table td div.emotion.up {
+.weibo.analysis table td div.emotion.up,.emotion.up {
     height: 11px;
     background-image: url("../images/icon_up.png");
     background-repeat:repeat-x;
 }
-.weibo.analysis table td div.emotion.down {
+.weibo.analysis table td div.emotion.down, .emotion.down {
     height: 11px;
     background-image: url("../images/icon_down.png");
     background-repeat:repeat-x;
@@ -427,3 +465,58 @@ ul {
     font-size: 1.6rem !important;
 }
 /* -- end of weibo analysis -- */
+
+div.form.row {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-align: center;
+}
+
+.form.label {
+    font-size: 1.6rem;
+    color: #2e8abe;
+    display: inline-block;
+    text-align: right;
+}
+input[type=text].form.field {
+    background-color: #1a1a19;
+    border: solid 1px #333333;
+    width: 150px;
+    height: 24px;
+    color: #fff;
+}
+
+.stock-select-item {
+    color: #ccc;
+    font-size: 1.4rem;
+    text-align: center;
+}
+
+.stock-select-item:hover {
+    cursor: pointer;
+    background-color: #333;
+}
+.as-save-button {
+    display: inline-block;
+    width: 80px;
+    height: 30px;
+    line-height: 30px;
+    margin: 40px 10px 0 30px;
+    text-align: center;
+    color: #fff;
+    background-color: #327cc0;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.as-close-button {
+    display: inline-block;
+    width: 80px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    color: #fff;
+    background-color: #555;
+    border-radius: 2px;
+    cursor: pointer;
+}

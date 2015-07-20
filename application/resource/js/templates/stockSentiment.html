@@ -4,10 +4,10 @@
             <li class="item add-stock" ng-click="addStock()">
                 <p class="stock-name"><img src="application/resource/images/icon_add.png" class="icon-add">添加股票</p>
             </li>
-            <li class="item" ng-repeat="stock in stockList">
+            <li class="item" ng-repeat="stock in stockList" ng-class="{blue: currentStockCode == stock.stock_code}" ng-click="switchStock($index)">
                 <p class="stock-name">{{stock.stock_name}}</p>
                 <p class="stock-id">{{stock.stock_code}}</p>
-                <img class="delete-icon" src="application/resource/images/icon_delete.png">
+                <img class="delete-icon" src="application/resource/images/icon_delete.png" ng-click="deleteStock($index)">
             </li>
         </ul>
     </div>
@@ -36,14 +36,15 @@
                     <ul class="wb-list">
                         <li class="wb-single clearfix" ng-repeat="weibo in relatedWeibo">
                             <div class="wb-img">
-                                <p class="img-title">{{ weibo.title }}</p>
+                                <p class="img-title">{{ weibo[0] }}</p>
                             </div>
-                            <div class="wb-sentiment">
-                                {{ weibo.up | sentimentFilter:$index:"up" }}
-                                {{ weibo.down | sentimentFilter:$index:"down" }}
+                            <div class="wb-sentiment {{20 | emotion}}">
+                                <!--{{ weibo.up | sentimentFilter:$index:"up" }}
+                                {{ weibo.down | sentimentFilter:$index:"down" }}-->
+
                             </div>
                             <div class="wb-stock">
-                                <p class="mr0" ng-repeat="stock in weibo.related">{{stock}}</p>
+                                <p class="mr0" ng-repeat="stock in weibo[1]">{{stock[0]}},</p>
                             </div>
                         </li>
                     </ul>
@@ -57,10 +58,12 @@
     </div>
     <div class="pull-left keyword-container">
         <h3 class="h3">社交关键词</h3>
-        <span ng-repeat="keyword in SNSKeyword" class="inline-block" ng-class="keyword.classes">{{ keyword.keyword }}</span>
+        <span ng-repeat="keyword in socialWords" class="inline-block" ng-class ="keyword[3]">{{ keyword[0] }}</span>
     </div>
     <div class="pull-left rank-container">
         <h3 class="h3">关注度排名</h3>
+        <p style="color: #ccc; text-align: center" class="font14">总排名<span style="color: #327cc0">第{{ rank.boardRank}}名  </span>
+            {{ rank.industry }}板块排名<span style="color: #ffde59">第{{rank.industryRank}}名</span></p>
         <div id="hot-ranking-chart"></div>
     </div>
 </div>

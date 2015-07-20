@@ -6,10 +6,6 @@ angular.module('weibo.service',['ngResource'])
                 method: "GET",
                 url: "http://10.109.247.65:8080/WeiboCluster/servlet/TaskServletTest"
             },
-            getRelatedWeibo: {
-                method: "GET",
-                url: "http://10.108.121.103:8888/getRelatedWeibo"
-            },
             getFinancialTask: {
                 method: "GET",
                 url: "http://10.109.247.65:8080/WeiboCluster/servlet/TaskECOServletBeta"

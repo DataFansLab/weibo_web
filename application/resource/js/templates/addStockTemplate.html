@@ -1,0 +1,17 @@
+
+<div style="position: relative; left: -200px; height: 400px; width: 230px; background-color: #111111; border: solid 1px #555555;font-family: 'Microsoft YaHei'">
+    <h3 style="margin: 0; padding: 5px 10px; background-color: #222222; font-size: 18px; font-weight: 100; color: #ffffff">股票筛选器</h3>
+
+    <div class="form row">
+        <span class="form label">搜索:</span>
+        <input class="form field" type="text" ng-model="condition">
+    </div>
+    <div style="width: 150px; height: 200px; margin-left: 60px; border: solid 1px #555555; overflow-y: auto">
+        <ul>
+            <li class="stock-select-item" ng-repeat="stock in stockList" ng-click="selectStock($index)">{{stock.stock_code}} | {{stock.stock_name}}</li>
+        </ul>
+    </div>
+
+    <span style="" class="as-save-button font14" ng-click="confirmChoice()">保存</span>
+    <span style="" class="as-close-button font14" ng-click="closeThisDialog()">取消</span>
+</div>

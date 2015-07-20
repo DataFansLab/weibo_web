@@ -1,37 +1,37 @@
 var stockSentimentChartConfig = {
     //关注度排名
     hotRankingOption: {
-        title: {
-            x: 30,
-            y: 0,
-            text: "沪深股票排名第55名 酒类板块排名第2名",
-            textStyle: {
-                fontSize: 14,
-                color: "#ccc",
-                fontWeight: "normal"
-            }
-        },
+        //title: {
+        //    x: 30,
+        //    y: 0,
+        //    text: "沪深股票排名第55名 酒类板块排名第2名",
+        //    textStyle: {
+        //        fontSize: 14,
+        //        color: "#ccc",
+        //        fontWeight: "normal"
+        //    }
+        //},
         grid: {
-            x: 30,
-            y: 55,
+            x: 50,
+            y: 15,
             x2: 50,
             y2: 20,
             borderWidth: 0
         },
-        legend: {y: 30, data: ["总排名", "板块排名"], textStyle: {color: "#ccc"}, itemWidth: 10, itemHeight: 10 },
+        legend: {y: 0, data: ["总排名", "板块排名"], textStyle: {color: "#ccc"}, itemWidth: 10, itemHeight: 10 },
         xAxis: [{
             type: "category",
             position: "bottom",
-            data: (function (){
-                var now = new Date();
-                var res = [];
-                var len = 10;
-                while (len--) {
-                    res.unshift(now.toLocaleTimeString().replace(/^\D*/,''));
-                    now = new Date(now - 2000);
-                }
-                return res;
-            })(),
+            //data: (function (){
+            //    var now = new Date();
+            //    var res = [];
+            //    var len = 10;
+            //    while (len--) {
+            //        res.unshift(now.toLocaleTimeString().replace(/^\D*/,''));
+            //        now = new Date(now - 2000);
+            //    }
+            //    return res;
+            //})(),
             axisLine: {
                 lineStyle: {
                     color: "#333333",
@@ -78,14 +78,14 @@ var stockSentimentChartConfig = {
             type: "line",
             symbol: "none",
             yAxisIndex: 0,
-            data: (function (){
-                var res = [];
-                var len = 10;
-                while (len--) {
-                    res.push(Math.round(Math.random() * 10));
-                }
-                return res;
-            })(),
+            //data: (function (){
+            //    var res = [];
+            //    var len = 10;
+            //    while (len--) {
+            //        res.push(Math.round(Math.random() * 10));
+            //    }
+            //    return res;
+            //})(),
             smooth: true,
             itemStyle: {
                 normal: {
@@ -98,14 +98,14 @@ var stockSentimentChartConfig = {
             type: "line",
             symbol: "none",
             yAxisIndex: 1,
-            data:(function (){
-                var res = [];
-                var len = 10;
-                while (len--) {
-                    res.push(Math.round(Math.random() * 10));
-                }
-                return res;
-            })(),
+            //data:(function (){
+            //    var res = [];
+            //    var len = 10;
+            //    while (len--) {
+            //        res.push(Math.round(Math.random() * 10));
+            //    }
+            //    return res;
+            //})(),
             smooth: true,
             itemStyle: {
                 normal: {
@@ -128,7 +128,7 @@ var stockSentimentChartConfig = {
             textStyle: {fontSize: "10"},
             axisPointer: {
                 type: "line",
-                    lineStyle: {
+                lineStyle: {
                     color: "#666666",
                     type: "dashed",
                     width: 2
@@ -150,13 +150,13 @@ var stockSentimentChartConfig = {
             type: "category",
             boundaryGap: false,
             position: "bottom",
-            data: function (){
-                var list = [];
-                for (var i = 1; i <= 7; i++) {
-                    list.push('2015-04-' + i);
-                }
-                return list;
-            }(),
+            /*data: function (){
+             var list = [];
+             for (var i = 1; i <= 7; i++) {
+             list.push('2015-04-' + i);
+             }
+             return list;
+             }(),*/
             axisLine: {
                 lineStyle: {
                     color: "#333333",
@@ -164,8 +164,8 @@ var stockSentimentChartConfig = {
                 }
             },
             /*axisTick: {
-                show: false
-            },*/
+             show: false
+             },*/
             axisLabel: {textStyle: {color: "#ccc"}},
             splitLine: {show: false}
         }],
@@ -197,7 +197,7 @@ var stockSentimentChartConfig = {
         }], series: [{
             type: "line",
             //symbol: "emptyCircle",
-            data: [2, 3, 1, 23, 12, 7, 23],
+            //data: [2, 3, 1, 23, 12, 7, 23],
             name: "微博数",
             itemStyle: {
                 normal: {
@@ -210,7 +210,7 @@ var stockSentimentChartConfig = {
             type: "line",
             //symbol: "none",
             yAxisIndex: 1,
-            data:[2000,300,1200,200,500,342,523],
+            //data:[2000,300,1200,200,500,342,523],
             name: "关注度",
             itemStyle: {
                 normal: {
@@ -219,23 +219,23 @@ var stockSentimentChartConfig = {
                 }
             }
         }
-    ]},
+        ]},
     //情感值
     sentimentOption: {
         tooltip: {
             trigger: "axis",
-                showDelay: 0,
-                borderRadius: 0,
-                borderWidth: 1,
-                borderColor: "#504026",
-                backgroundColor: "#242322",
-                textStyle: {fontSize: "10"},
+            showDelay: 0,
+            borderRadius: 0,
+            borderWidth: 1,
+            borderColor: "#504026",
+            backgroundColor: "#242322",
+            textStyle: {fontSize: "10"},
             axisPointer: {
                 type: "line",
-                    lineStyle: {
+                lineStyle: {
                     color: "#666666",
-                        type: "dashed",
-                        width: 2
+                    type: "dashed",
+                    width: 2
                 }
             },
             formatter: function (params) {
@@ -244,19 +244,19 @@ var stockSentimentChartConfig = {
         },
         grid: {
             backgroundColor: "#1b2129",
-                x: 50,
-                y: 5,
-                x2: 50,
-                y2: 20,
-                borderWidth: 0
+            x: 50,
+            y: 5,
+            x2: 50,
+            y2: 20,
+            borderWidth: 0
         },
         title: {
             x: 600,
-                y: -5,
-                subtext: "正能量\n\n负能量",
-                subtextStyle: {
+            y: -5,
+            subtext: "正能量\n\n负能量",
+            subtextStyle: {
                 color: "#ccc",
-                    lineHeight: 20
+                lineHeight: 20
             }
         },
         xAxis: [{
@@ -264,43 +264,43 @@ var stockSentimentChartConfig = {
             show: false,
             axisLine: {
                 show: false
-            },
-            data: ["2015-06-2", "2015-06-03", "2015-06-04", "2015-06-05", "2015-06-06", "2015-06-07", "2015-06-08"]
+            }
+            //data: ["2015-06-2", "2015-06-03", "2015-06-04", "2015-06-05", "2015-06-06", "2015-06-07", "2015-06-08"]
         }],
-            yAxis: [{
-        min: -100,
-        max: 100,
-        type: "value",
-        show: true,
-        axisLine: {
-            show: false
-        },
-        axisLabel: {
-            textStyle: {color: "#ccc"}
-        },
-        splitLine: {
+        yAxis: [{
+            min: -20,
+            max: 20,
+            type: "value",
             show: true,
-            lineStyle: {
-                color: "#333333",
-                width: 1
-            }
-        },
-        splitArea: {
-            show: true,
-            areaStyle: {
-                color: [
-                    "#2f1e1c",
-                    "#1b2129"
-                ]
-            }
-        },
-        splitNumber: 2
-    }],
+            axisLine: {
+                show: false
+            },
+            axisLabel: {
+                textStyle: {color: "#ccc"}
+            },
+            splitLine: {
+                show: true,
+                lineStyle: {
+                    color: "#333333",
+                    width: 1
+                }
+            },
+            splitArea: {
+                show: true,
+                areaStyle: {
+                    color: [
+                        "#2f1e1c",
+                        "#1b2129"
+                    ]
+                }
+            },
+            splitNumber: 2
+        }],
         series: [{
             type: "line",
             name: "情感值",
             symbol: "none",
-            data: [20, -23, -51, 23, 12, 77, 23],
+            //data: [20, -23, -51, 23, 12, 77, 23],
             itemStyle: {
                 normal: {
                     color: "#a455a9",
@@ -308,6 +308,6 @@ var stockSentimentChartConfig = {
                 }
             }
         }]
-    },
+    }
 
 };
