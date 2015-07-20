@@ -21,7 +21,7 @@
                 <li ng-class="{active: period == 3}" ng-click="period = 3">全部</li>
             </ul>
         </div>
-        <div class="chart-container">
+        <div class="chart-container" style="height: 420px;">
             <div class="top">
                 <div style="float: left; width: 700px; border-right: solid 1px #222222">
                     <div id="sentiment-chart"></div>
@@ -51,14 +51,14 @@
                 </div>
             </div>
         </div>
-    </div>
-    <div class="pull-left">
-        <div id="relationship-network" style="width: 600px; height: 250px;"></div>
-    </div>
-    <div class="pull-left">
-        <div id="topic-emotion-percent" style="width: 200px; height: 220px;"></div>
-    </div>
-    <div class="pull-left">
-        <div id="topic-involved-fans" style="width: 200px; height: 220px;"></div>
+        <div class="pull-left">
+            <div id="relationship-network" style="width: 600px; height: 250px; margin-top: 20px; margin-left: 20px"></div>
+        </div>
+        <div class="pull-left">
+            <div id="topic-emotion-percent" style="width: 200px; height: 220px;margin: 20px 10px 0 30px;"></div>
+        </div>
+        <div class="pull-left">
+            <div id="topic-involved-fans" style="width: 200px; height: 220px;margin-top: 20px;"></div>
+        </div>
     </div>
 </div>

@@ -2,7 +2,7 @@ define(function() {
 
 var theme = {
     // 全图默认背景
-    backgroundColor: '#1b1b1b',
+    backgroundColor: '#171716',
 
     // 默认色板
     color: [

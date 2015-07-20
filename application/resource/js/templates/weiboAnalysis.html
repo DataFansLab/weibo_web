@@ -40,11 +40,11 @@
                     <th class="topics">热议话题</th></tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="rank in rankUp | orderBy: '-effect'" ng-if="$index < 10" >
+                <tr ng-repeat="rank in rankUp | orderBy: '-effect'">
                     <td><div class="rank">{{$index + 1}}</div></td>
                     <td class="stock name">{{rank.stockName}}</td>
                     <td>{{rank.effect | effect}}</td>
-                    <td><div class="{{rank.emotion | emotion}}"></div></td>
+                    <td><div class="{{rank.emotion | sentiment}}"></div></td>
                     <td>{{rank.topics}}</td>
                 </tr>
                 </tbody>
@@ -61,11 +61,11 @@
                     <th class="topics">热议话题</th></tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="rank in rankDown | orderBy: 'emotion'" ng-if="$index < 10" >
+                <tr ng-repeat="rank in rankDown | orderBy: 'emotion'">
                     <td><div class="rank">{{$index + 1}}</div></td>
                     <td class="stock name">{{rank.stockName}}</td>
                     <td>{{rank.effect | effect}}</td>
-                    <td><div class="{{rank.emotion | emotion}}"></div></td>
+                    <td><div class="{{rank.emotion | sentiment}}"></div></td>
                     <td>{{rank.topics}}</td>
                 </tr>
                 </tbody>

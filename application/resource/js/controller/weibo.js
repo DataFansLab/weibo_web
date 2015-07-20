@@ -469,7 +469,7 @@ angular.module("weibo.controllers", ["ngDialog"])
     }])
     .controller('weiboAnalysisCtrl', ["$scope", "Weibo", function ($scope, Weibo) {
         $scope.period = 0;
-        Weibo.getWeiboTopic({type: 'getEvents', time: 'day', startTime: '2015-03-23'}, function(_res) {
+        Weibo.getWeiboTopic({type: 'getEvents', time: 'day', startTime: '2015-03-25 01'}, function(_res) {
             var events = _res.events;
 
             // 添加瀑布流数据
@@ -500,7 +500,7 @@ angular.module("weibo.controllers", ["ngDialog"])
         });
         // Rank Up
         // 万以上的就精确到万，万以下的就精确到个位
-        Weibo.getWeiboTopic({type: 'getRank', time: 'day', startTime: '2015-03-23'}, function(_res) {
+        Weibo.getWeiboTopic({type: 'getRank', time: 'day', startTime: '2015-03-23 01'}, function(_res) {
             var rankUp = _res.stock_rank;
             // 加载rank up数据
             // 按影响力由大到小
@@ -524,7 +524,7 @@ angular.module("weibo.controllers", ["ngDialog"])
             }
         });
         // Rank Down
-        Weibo.getWeiboTopic({type: 'getNRank', time: 'day', startTime: '2015-03-23'}, function(_res) {
+        Weibo.getWeiboTopic({type: 'getNRank', time: 'day', startTime: '2015-03-23 01'}, function(_res) {
             var rankDown = _res.stock_nrank;
             // 加载rank down数据
             // 按话题情绪绝对值由大到小
@@ -535,7 +535,7 @@ angular.module("weibo.controllers", ["ngDialog"])
                     var item = rankDown[index];
                     var stockName = item.stock_name;
                     var effect = parseInt(item.influence);
-                    var emotion = parseInt("-" + item.sentiment);
+                    var emotion = parseInt(item.sentiment);
                     var topics = item.topic.replace(new RegExp("\\+","gm"), " ");
                     // push
                     $scope.rankDown.push({
@@ -553,17 +553,15 @@ angular.module("weibo.controllers", ["ngDialog"])
         });
         console.log("weiboAnalysisCtrl");
     }])
-    .filter('emotion', function() {
+    .filter('sentiment', function() {
         return function(input) {
             var direction = "up";
-            var base = 40;
-            var qty;
+            var base = 60;
+            var qty = "zero";
 
-            if (input == 0) return;
             if (input < 0) direction = "down";
             input = Math.abs(input);
             switch (parseInt(input / base)) {
-                case 0: return;
                 case 1: qty = "one"; break;
                 case 2: qty = "two"; break;
                 case 3: qty = "three"; break;
