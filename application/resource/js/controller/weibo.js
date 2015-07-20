@@ -56,13 +56,11 @@ angular.module("weibo.controllers", ["ngDialog"])
         }
 
         $scope.switchPeriod(0);
-
         $scope.addStock = function(){
             ngDialog.open({
                 template: "application/resource/js/templates/addStockFormTemplate.html"
             });
-        }
-
+        };
         function dateFormat(date) {
             var month = date.getMonth() + 1;
             month < 10 ? month = "0" + month : month = month;
@@ -166,10 +164,107 @@ angular.module("weibo.controllers", ["ngDialog"])
             $(".wb-sentiment:eq(" + index + ")").append("<br>");
         };
     })
-    .controller('financialSentimentCtrl', ["$scope", "Weibo", function ($scope, Weibo) {
-        //Weibo.getStock({}, function(_res) {
-           // $scope.stockList = _res.stock_list;
-        //});
+    .controller('financialSentimentCtrl', ["$scope", "Weibo", "ngDialog", function ($scope, Weibo, ngDialog) {
+        Weibo.getFinancialTask({ type: "getTask", usrid: "tangye"}, function(_res) {
+           $scope.taskList = _res.keyword_task;
+        });
+
+        $scope.deleteTask = function (usr_id, task_id) {
+            var result = ngDialog.openConfirm({
+                template:'application/resource/js/templates/confirmTemplate.html'
+            });
+            result.then(function success() {
+                Weibo.getFinancialTask({ type: "deleteTask", usrid: usr_id, taskID: task_id}, function(_res) {
+                    for (var index in $scope.taskList) {
+                        if ($scope.taskList[index].task_id == task_id) {
+                            removeByIndexFromArray($scope.taskList, index);
+                        }
+                    }
+                });
+            }, function error() {
+                //console.info();
+            });
+        };
+
+        $scope.addTask = function(){
+            ngDialog.open({
+                template: "application/resource/js/templates/addStockFormTemplate.html",
+                controller: ['$scope', function($scope) {
+                    $scope.includedKeywords = new Array();
+                    $scope.excludedKeywords = new Array();
+                    $scope.addKeywords = function(type) {
+                        var id;
+                        var arr;
+                        if (type == 'ex') {
+                            id = "excluded-keywords";
+                            arr = $scope.excludedKeywords;
+                        } else {
+                            id = "included-keywords";
+                            arr = $scope.includedKeywords;
+                        }
+                        var keywords = document.getElementById(id).value.split(",");
+                        for (var index in keywords) {
+                            arr.push({ name: keywords[index] })
+                        }
+                        $("#" + id).val("");
+                    };
+                    $scope.deleteKeyword = function (type, index) {
+                        if (type == 'ex') {
+                            removeByIndexFromArray($scope.excludedKeywords, index);
+                        } else {
+                            removeByIndexFromArray($scope.includedKeywords, index);
+                        }
+                    };
+                    $scope.saveTask = function() {
+                        var flag = true;
+                        var task_name = $('#task-name').val();
+                        if (task_name == '') {
+                            $('#task-name').parent().addClass("error");
+                            flag = false;
+                        } else $('#task-name').parent().removeClass("error");
+                        if ($scope.includedKeywords.length == 0) {
+                            $('.form.row')[1].className += " error";
+                            flag = false;
+                        } else $('.form.row')[1].className = "form row";
+                        var condition = $("input[type='radio']:checked").val();
+                        if (condition == null) {
+                            $('.form.row')[2].className += " error";
+                            flag = false;
+                        } else $('.form.row')[2].className = "form row";
+                        if ($scope.excludedKeywords.length == 0) {
+                            $('.form.row')[3].className += " error";
+                            flag = false;
+                        } else $('.form.row')[3].className = "form row";
+                        if (flag) {
+                            $(".dialog p")[0].innerText = "";
+                            var keywords = '';
+                            for (var index in $scope.includedKeywords) {
+                                keywords += $scope.includedKeywords[index].name + ' ';
+                            }
+                            keywords = keywords.substr(0, keywords.length - 1);
+                            var non_keywords = '';
+                            for (var index in $scope.excludedKeywords) {
+                                non_keywords += $scope.excludedKeywords[index].name + ' ';
+                            }
+                            non_keywords = non_keywords.substr(0, non_keywords.length - 1);
+                            Weibo.getFinancialTask({
+                                type: "saveTask",
+                                usrid: "tangye",
+                                task_name: task_name,
+                                keywords: keywords,
+                                condition: condition,
+                                non_keywords: non_keywords
+                            }, function(_res) {
+                                $scope.closeThisDialog();
+                                location.reload();
+                            });
+                        } else {
+                            $(".dialog p")[0].innerText = "请完善必要信息";
+                        }
+                    };
+                }]
+            });
+        }
 
         $scope.period = 0;
 
@@ -361,3 +456,20 @@ angular.module("weibo.controllers", ["ngDialog"])
             }
         }
     });
+
+/*
+ *  功能:删除数组元素.
+ *  参数:dx删除元素的下标.
+ */
+function removeByIndexFromArray(arr, dx)
+{
+    if(isNaN(dx)||dx>arr.length){return false;}
+    for(var i=0,n=0;i<arr.length;i++)
+    {
+        if(arr[i]!=arr[dx])
+        {
+            arr[n++]=arr[i]
+        }
+    }
+    arr.length-=1
+}

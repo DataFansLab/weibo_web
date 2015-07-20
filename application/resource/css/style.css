@@ -92,6 +92,8 @@ ul {
     display: inline-block;
     margin-left: -232px;
     width: 227px;
+    height: 800px;
+    overflow-y: auto;
 }
 .container .list .item {
     box-sizing: border-box;
@@ -105,11 +107,11 @@ ul {
     font-size: 1.8rem;
     cursor: pointer;
 }
-.container .list .add-stock {
+.container .list .add-stock, .container .list .add-task {
     text-align: center;
     line-height: 50px;
 }
-.add-stock .icon-add {
+.add-stock .icon-add, .add-task .icon-add {
     position: relative;
     top: 5px;
     margin-right: 10px;
@@ -117,7 +119,7 @@ ul {
 .container .list .item:hover {
     background-color: #327cc0;
 }
-.container .list .add-stock:hover {
+.container .list .add-stock:hover, .container .list .add-task:hover {
     background-color: #242322;
 }
 .container .list .delete-icon {
@@ -132,10 +134,10 @@ ul {
 .item:hover .stock-id {
     color: #ffffff;
 }
-.stock-name, .stock-id {
+.stock-name, .stock-id, .task-name, .task-keywords {
     margin: 0;
 }
-.stock-id {
+.stock-id, .task-keywords {
     margin-top: 10px;
     font-size: 1.4rem;
     color: #777777;

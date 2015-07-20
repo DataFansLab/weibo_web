@@ -2,13 +2,13 @@
 <div class="container clearfix">
     <div class="list">
         <ul>
-            <li class="item add-stock">
-                <p class="stock-name"><img src="application/resource/images/icon_add.png" class="icon-add">添加股票</p>
+            <li class="item add-task" ng-click="addTask()">
+                <p class="task-name"><img src="application/resource/images/icon_add.png" class="icon-add">添加任务</p>
             </li>
-            <li class="item" ng-repeat="stock in stockList">
-                <p class="stock-name">{{stock.stock_name}}</p>
-                <p class="stock-id">{{stock.stock_code}}</p>
-                <img class="delete-icon" src="application/resource/images/icon_delete.png">
+            <li class="item" ng-repeat="task in taskList">
+                <p class="task-name">{{task.task_name}}</p>
+                <p class="task-keywords">{{task.keywords}}</p>
+                <img class="delete-icon" src="application/resource/images/icon_delete.png" ng-click="deleteTask(task.usrid, task.task_id)">
             </li>
         </ul>
     </div>

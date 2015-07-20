@@ -1,0 +1,32 @@
+<style>
+    .dialog, .dialog * {
+        font-family: 'Microsoft YaHei';
+        font-size: 1.6rem;
+        color: #999999;
+    }
+    .ngdialog-content {
+        width: 230px !important;
+    }
+    .buttons {
+        text-align: center;
+    }
+    .buttons button {
+        width: 80px;
+        height: 30px;
+        border-radius: 3px;
+        border-width: 0;
+        background-color: #327cc0;
+        color: #ffffff;
+    }
+    .buttons .button.negative {
+        background-color: #555555;
+        margin-left: 30px;
+    }
+</style>
+<div class="dialog" style="position: relative; left: -80px; height: 130px; width: 310px; background-color: #111111; border: solid 1px #555555;">
+    <p style="text-align: center; margin-top: 30px; margin-bottom: 20px;">你确定要删除吗？</p>
+    <div class="buttons">
+        <button type="button" class="button positive" ng-click="confirm(1)">确定</button>
+        <button type="button" class="button negative" ng-click="closeThisDialog(0)">取消</button>
+    </div>
+</div>
