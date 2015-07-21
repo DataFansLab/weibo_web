@@ -22,6 +22,7 @@
     <script src="application/resource/plugins/ng-dialog/js/ngDialog.min.js"></script>
     <script type="text/javascript" src="application/resource/js/services/weibo.js"></script>
     <script type="text/javascript" src="application/resource/js/services/user.js"></script>
+    <script type="text/javascript" src="application/resource/js/services/finance.js"></script>
     <script type="text/javascript" src="application/resource/js/controller/weibo.js"></script>
     <script type="text/javascript" src="application/resource/js/route/weibo.js"></script>
     <script type="text/javascript" src="application/resource/js/weibo.js"></script>

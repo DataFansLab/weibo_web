@@ -5,7 +5,7 @@
             <li class="item add-task" ng-click="addTask()">
                 <p class="task-name"><img src="application/resource/images/icon_add.png" class="icon-add">添加任务</p>
             </li>
-            <li class="item" ng-repeat="task in taskList">
+            <li class="item" ng-repeat="task in taskList" ng-class="{blue: currentTaskId == task.task_id}" ng-click="switchTask($index)">
                 <p class="task-name">{{task.task_name}}</p>
                 <p class="task-keywords">{{task.keywords}}</p>
                 <img class="delete-icon" src="application/resource/images/icon_delete.png" ng-click="deleteTask(task.usrid, task.task_id)">
@@ -15,17 +15,17 @@
     <div class="right-container">
         <div class="bar">
             <ul>
-                <li ng-class="{active: period == 0}" ng-click="period = 0">最近一周</li>
-                <li ng-class="{active: period == 1}" ng-click="period = 1">最近两周</li>
-                <li ng-class="{active: period == 2}" ng-click="period = 2">最近一月</li>
-                <li ng-class="{active: period == 3}" ng-click="period = 3">全部</li>
+                <li ng-class="{active: period == 0}" ng-click="switchPeriod(0)">最近一周</li>
+                <li ng-class="{active: period == 1}" ng-click="switchPeriod(1)">最近两周</li>
+                <li ng-class="{active: period == 2}" ng-click="switchPeriod(2)">最近一月</li>
+                <!--<li ng-class="{active: period == 3}" ng-click="period = 3">全部</li>-->
             </ul>
         </div>
         <div class="chart-container" style="height: 420px;">
             <div class="top">
                 <div style="float: left; width: 700px; border-right: solid 1px #222222">
-                    <div id="sentiment-chart"></div>
-                    <div id="weibo-count-chart"></div>
+                    <div id="sentiment-chart-f"></div>
+                    <div id="weibo-count-chart-f"></div>
                 </div>
                 <div class="wb-container">
                     <h3 class="h3">关联微博</h3>
@@ -37,14 +37,13 @@
                     <ul class="wb-list">
                         <li class="wb-single clearfix" ng-repeat="weibo in relatedWeibo">
                             <div class="wb-img">
-                                <p class="img-title">{{ weibo.title }}</p>
+                                <p class="img-title">{{ weibo[0] }}</p>
                             </div>
                             <div class="wb-sentiment">
-                                {{ weibo.up | sentimentFilter:$index:"up" }}
-                                {{ weibo.down | sentimentFilter:$index:"down" }}
+                                <p  ng-repeat="stock in weibo[1]" class=" {{stock[1] | emotion}} mr0" style="margin-bottom: 8px;" ng-if="$index < 2"></p>
                             </div>
                             <div class="wb-stock">
-                                <p class="mr0" ng-repeat="stock in weibo.related">{{stock}}</p>
+                                <p class="mr0" ng-repeat="stock in weibo[1]" ng-if="$index < 2">{{stock[0]}},</p>
                             </div>
                         </li>
                     </ul>

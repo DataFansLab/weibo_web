@@ -4,6 +4,7 @@
 var financialSentimentChartsConfig = {
     // 关联股票网
     relationshipNetwork: {
+
         title : {
             text: '关联股票网',
             textStyle: {
@@ -11,7 +12,6 @@ var financialSentimentChartsConfig = {
             }
         },
         calculable : false,
-
         series : [
             {
                 name:'树图',
@@ -52,33 +52,33 @@ var financialSentimentChartsConfig = {
                         }
                     }
                 },
-
-                data: [
-                    {
-                        name: '根节点',
-                        value: 6,
-                        children: [
-                            {
-                                name: '节点啊啊',
-                                value: 4,
-                                emotion: 20,
-                                labelPosition: 'left'
-                            },
-                            {
-                                name: '节点啊啊啊',
-                                value: 4,
-                                emotion: -30,
-                                labelPosition: 'left'
-                            },
-                            {
-                                name: '节点',
-                                value: 1,
-                                emotion: 40,
-                                labelPosition: 'left'
-                            }
-                        ]
-                    }
-                ]
+                data: []
+                //data: [
+                //    {
+                //        name: '根节点',
+                //        value: 6,
+                //        children: [
+                //            {
+                //                name: '节点啊啊',
+                //                value: 4,
+                //                emotion: 20,
+                //                labelPosition: 'left'
+                //            },
+                //            {
+                //                name: '节点啊啊啊',
+                //                value: 4,
+                //                emotion: -30,
+                //                labelPosition: 'left'
+                //            },
+                //            {
+                //                name: '节点',
+                //                value: 1,
+                //                emotion: 40,
+                //                labelPosition: 'left'
+                //            }
+                //        ]
+                //    }
+                //]
             },
             {
                 name:'树图',
@@ -118,51 +118,52 @@ var financialSentimentChartsConfig = {
                         }
                     }
                 },
+                data: []
 
-                data: [
-                    {
-                        name: '',
-                        value: 6,
-                        children: [
-                            {
-                                name: '节点啊啊',
-                                value: 4,
-                                emotion: 20,
-                                labelPosition: 'right'
-                            },
-                            {
-                                name: '节点啊啊啊',
-                                value: 4,
-                                emotion: -30,
-                                labelPosition: 'right'
-                            },
-                            {
-                                name: '节点',
-                                value: 1,
-                                emotion: 40,
-                                labelPosition: 'right'
-                            },
-                            {
-                                name: '节点啊',
-                                value: 1,
-                                emotion: -10,
-                                labelPosition: 'right'
-                            },
-                            {
-                                name: '节点啊',
-                                value: 1,
-                                emotion: -10,
-                                labelPosition: 'right'
-                            },
-                            {
-                                name: '节点啊',
-                                value: 1,
-                                emotion: -10,
-                                labelPosition: 'right'
-                            }
-                        ]
-                    }
-                ]
+                //data: [
+                //    {
+                //        name: '',
+                //        value: 6,
+                //        children: [
+                //            {
+                //                name: '节点啊啊',
+                //                value: 4,
+                //                emotion: 20,
+                //                labelPosition: 'right'
+                //            },
+                //            {
+                //                name: '节点啊啊啊',
+                //                value: 4,
+                //                emotion: -30,
+                //                labelPosition: 'right'
+                //            },
+                //            {
+                //                name: '节点',
+                //                value: 1,
+                //                emotion: 40,
+                //                labelPosition: 'right'
+                //            },
+                //            {
+                //                name: '节点啊',
+                //                value: 1,
+                //                emotion: -10,
+                //                labelPosition: 'right'
+                //            },
+                //            {
+                //                name: '节点啊',
+                //                value: 1,
+                //                emotion: -10,
+                //                labelPosition: 'right'
+                //            },
+                //            {
+                //                name: '节点啊',
+                //                value: 1,
+                //                emotion: -10,
+                //                labelPosition: 'right'
+                //            }
+                //        ]
+                //    }
+                //]
             }
         ]
     },
@@ -213,27 +214,27 @@ var financialSentimentChartsConfig = {
                         borderWidth: 3,
                         borderColor: '#1B1B1B'
                     }
-                },
-                data:[
-                    {value:335, name:'正面',
-                        itemStyle : {
-                            normal: {
-                                color : '#FFDE59'
-                            }
-                        }},
-                    {value:310, name:'负面',
-                        itemStyle : {
-                            normal: {
-                                color : '#2C4773'
-                            }
-                        }},
-                    {value:234, name:'中性',
-                        itemStyle : {
-                            normal: {
-                                color : '#69BFDE'
-                            }
-                        }},
-                ]
+                }
+                //data:[
+                    //{value:335, name:'正面',
+                    //    itemStyle : {
+                    //        normal: {
+                    //            color : '#FFDE59'
+                    //        }
+                    //    }},
+                    //{value:310, name:'负面',
+                    //    itemStyle : {
+                    //        normal: {
+                    //            color : '#2C4773'
+                    //        }
+                    //    }},
+                    //{value:234, name:'中性',
+                    //    itemStyle : {
+                    //        normal: {
+                    //            color : '#69BFDE'
+                    //        }
+                    //    }},
+                //]
             }
         ]
     },
@@ -287,25 +288,25 @@ var financialSentimentChartsConfig = {
                     }
                 },
                 data:[
-                    {value:335, name:'1-1000',
+                    {value:0, name:'1-1000',
                         itemStyle : {
                             normal: {
                                 color : '#FFDE59'
                             }
                         }},
-                    {value:310, name:'1000-5000',
+                    {value:0, name:'1000-5000',
                         itemStyle : {
                             normal: {
                                 color : '#327cc0'
                             }
                         }},
-                    {value:234, name:'5000-1万',
+                    {value:0, name:'5000-1万',
                         itemStyle : {
                             normal: {
                                 color : '#2C4773'
                             }
                         }},
-                    {value:234, name:'1万以上粉丝',
+                    {value:0, name:'1万以上粉丝',
                         itemStyle : {
                             normal: {
                                 color : '#69BFDE'

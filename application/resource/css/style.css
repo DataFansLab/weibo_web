@@ -134,7 +134,7 @@ ul {
 .container .list .item:hover .delete-icon {
     display: inline-block;
 }
-.container .list .item.blue .stock-id, .item:hover .stock-id {
+.container .list .item.blue .stock-id, .item:hover .stock-id, .container .list .item.blue .task-keywords, .item:hover .task-keywords {
     color: #ffffff;
 }
 .item:hover .stock-id {
@@ -216,12 +216,12 @@ ul {
 .chart-container .top {
     padding: 10px 0;
 }
-#sentiment-chart {
+#sentiment-chart, #sentiment-chart-f {
     display: inline-block;
     width: 700px;
     height: 100px;
 }
-#weibo-count-chart {
+#weibo-count-chart, #weibo-count-chart-f {
     display: inline-block;
     width: 700px;
     height: 300px;
