@@ -389,7 +389,6 @@ ul {
     background-color: #2B2A2A;
     width: 220px;
     height: 277px;
-    display: none;
 }
 .ui.box .inner-box {
     height: 170px;
@@ -401,7 +400,7 @@ ul {
     width: 200px;
     padding: 5px 10px 5px 10px;
     position: absolute;
-    bottom: 117px;
+    bottom: 122px;
     background: rgba(0, 0, 0, 0.7);
 }
 .ui.box .affect {
@@ -412,7 +411,6 @@ ul {
 }
 .rank.table {
     height: 400px;
-    display: none;
 }
 .weibo.analysis table {
     background-color: transparent !important;

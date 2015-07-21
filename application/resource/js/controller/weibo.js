@@ -468,109 +468,104 @@ angular.module("weibo.controllers", ["ngDialog"])
         })();
     }])
     .controller('weiboAnalysisCtrl', ["$scope", "Weibo", function ($scope, Weibo) {
-        $scope.period = 0;
-        Weibo.getWeiboTopic({type: 'getEvents', time: 'day', startTime: '2015-03-25 01'}, function(_res) {
-            var events = _res.events;
+        //$('.ui.pics').css("display", "none");
+        //$('.rank.table').css("display", "none");
+        $scope.load = function(period) {
+            $scope.period = period;
 
-            // 添加瀑布流数据
-            $scope.pics = new Array();
-            if (events) {
-                for (var index in events) {
-                    // 数据准备
-                    var event = events[index];
-                    var title = event.topic;
-                    var num = Math.ceil( Math.random() * 5 );
-                    var affectedSector = '';
-                    var affectedStock = '';
-                    for (var sector in event.related_stock) {
-                        affectedSector += sector + '（' + event.related_stock[sector] + '）';
+
+            //$('.ui.pics').addClass("hidden");
+            //$('.rank.table').removeClass("visible");
+            //$('.rank.table').addClass("hidden");
+            var time = 'day';
+            var startTime = '2015-03-23 01';
+            if (period == 1) time = 'week';
+            Weibo.getWeiboTopic({type: 'getEvents', time: time, startTime: startTime}, function(_res) {
+                var events = _res.events;
+                // 添加瀑布流数据
+                $scope.pics = new Array();
+                if (events) {
+                    for (var index in events) {
+                        // 数据准备
+                        var event = events[index];
+                        var title = event.topic;
+                        var num = Math.ceil( Math.random() * 5 );
+                        var affectedSector = '';
+                        var affectedStock = '';
+                        for (var sector in event.related_stock) {
+                            affectedSector += sector + '（' + event.related_stock[sector] + '）';
+                        }
+                        for (var stock in event.related_industry) {
+                            affectedStock += stock + '（' + event.related_industry[stock] + '）';
+                        }
+                        // push操作
+                        $scope.pics.push({
+                            "title": title,
+                            "image": "application/resource/images/" + num + ".png",
+                            "affectedSector": affectedSector,
+                            "affectedStock": affectedStock
+                        });
                     }
-                    for (var stock in event.related_industry) {
-                        affectedStock += stock + '（' + event.related_industry[stock] + '）';
+                }
+            });
+            // Rank Up
+            // 万以上的就精确到万，万以下的就精确到个位
+            Weibo.getWeiboTopic({type: 'getRank', time: time, startTime: startTime}, function(_res) {
+                var rankUp = _res.stock_rank;
+                // 加载rank up数据
+                // 按影响力由大到小
+                $scope.rankUp = new Array();
+                if (rankUp) {
+                    for (var index in rankUp) {
+                        // 数据准备
+                        var item = rankUp[index];
+                        var stockName = item.stock_name;
+                        var effect = parseInt(item.influence);
+                        var emotion = parseInt(item.sentiment);
+                        var topics = item.topic.replace(new RegExp("\\+","gm"), " ");
+                        // push
+                        $scope.rankUp.push({
+                            "stockName": stockName,
+                            "effect": effect,
+                            "emotion": emotion,
+                            "topics": topics
+                        });
                     }
-                    // push操作
-                    $scope.pics.push({
-                        "title": title,
-                        "image": "application/resource/images/" + num + ".png",
-                        "affectedSector": affectedSector,
-                        "affectedStock": affectedStock
-                    });
                 }
-            }
-        });
-        // Rank Up
-        // 万以上的就精确到万，万以下的就精确到个位
-        Weibo.getWeiboTopic({type: 'getRank', time: 'day', startTime: '2015-03-23 01'}, function(_res) {
-            var rankUp = _res.stock_rank;
-            // 加载rank up数据
-            // 按影响力由大到小
-            $scope.rankUp = new Array();
-            if (rankUp) {
-                for (var index in rankUp) {
-                    // 数据准备
-                    var item = rankUp[index];
-                    var stockName = item.stock_name;
-                    var effect = parseInt(item.influence);
-                    var emotion = parseInt(item.sentiment);
-                    var topics = item.topic.replace(new RegExp("\\+","gm"), " ");
-                    // push
-                    $scope.rankUp.push({
-                        "stockName": stockName,
-                        "effect": effect,
-                        "emotion": emotion,
-                        "topics": topics
-                    });
+            });
+            // Rank Down
+            Weibo.getWeiboTopic({type: 'getNRank', time: time, startTime: startTime}, function(_res) {
+                var rankDown = _res.stock_nrank;
+                // 加载rank down数据
+                // 按话题情绪绝对值由大到小
+                $scope.rankDown = new Array();
+                if (rankDown) {
+                    for (var index in rankDown) {
+                        // 数据准备
+                        var item = rankDown[index];
+                        var stockName = item.stock_name;
+                        var effect = parseInt(item.influence);
+                        var emotion = parseInt(item.sentiment);
+                        var topics = item.topic.replace(new RegExp("\\+","gm"), " ");
+                        // push
+                        $scope.rankDown.push({
+                            "stockName": stockName,
+                            "effect": effect,
+                            "emotion": emotion,
+                            "topics": topics
+                        });
+                    }
                 }
-            }
-        });
-        // Rank Down
-        Weibo.getWeiboTopic({type: 'getNRank', time: 'day', startTime: '2015-03-23 01'}, function(_res) {
-            var rankDown = _res.stock_nrank;
-            // 加载rank down数据
-            // 按话题情绪绝对值由大到小
-            $scope.rankDown = new Array();
-            if (rankDown) {
-                for (var index in rankDown) {
-                    // 数据准备
-                    var item = rankDown[index];
-                    var stockName = item.stock_name;
-                    var effect = parseInt(item.influence);
-                    var emotion = parseInt(item.sentiment);
-                    var topics = item.topic.replace(new RegExp("\\+","gm"), " ");
-                    // push
-                    $scope.rankDown.push({
-                        "stockName": stockName,
-                        "effect": effect,
-                        "emotion": emotion,
-                        "topics": topics
-                    });
-                }
-            }
-        });
+            });
+        };
+        $scope.load(0);
         $scope.$on('ngRepeatFinished', function () {
-            $(".ui.box").transition("fade up", "1s");
+            $('.ui.pics').transition("toggle");
+            $('.rank.table').transition("toggle");
+            $(".ui.pics").transition("fade up", "1s");
             $(".rank.table").transition("fade up", "1s");
         });
-        console.log("weiboAnalysisCtrl");
     }])
-    .filter('sentiment', function() {
-        return function(input) {
-            var direction = "up";
-            var base = 60;
-            var qty = "zero";
-
-            if (input < 0) direction = "down";
-            input = Math.abs(input);
-            switch (parseInt(input / base)) {
-                case 1: qty = "one"; break;
-                case 2: qty = "two"; break;
-                case 3: qty = "three"; break;
-                case 4: qty = "four"; break;
-                case 5: qty = "five"; break;
-            }
-            return "emotion " + direction + " " + qty;
-        };
-    })
     .filter('effect', function() {
         return function(input) {
             if (input > 10000) input = parseInt(input / 10000) + '万';
