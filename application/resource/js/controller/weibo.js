@@ -342,6 +342,7 @@ angular.module("weibo.controllers", ["ngDialog"])
             _weiboCountData.length = 0;
             _influenceData.length = 0;
             _relatedStockData.length = 0;
+            _topicSentimentData.length = 0;
 
             if(_sentimentChart) {
                 _sentimentChart.clear();
@@ -463,6 +464,10 @@ angular.module("weibo.controllers", ["ngDialog"])
                 stockSentimentChartConfig.sentimentOption.series[0].data = _sentimentData;
                 stockSentimentChartConfig.weiboCountOption.series[0].data = _weiboCountData;
                 stockSentimentChartConfig.weiboCountOption.series[1].data = _influenceData;
+
+                for(i = 0; i < 4; i ++) {
+                    financialSentimentChartsConfig.topicInvolvedFans.series[0].data[i].value = 0;
+                }
 
                 for(i = 0; i < $scope.financialAnalysis.task_analysis.length; i++) {
                     var fansCount = $scope.financialAnalysis.task_analysis[i].fans_count;
