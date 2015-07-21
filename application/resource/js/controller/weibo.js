@@ -223,8 +223,25 @@ angular.module("weibo.controllers", ["ngDialog"])
             });
         }
 
-        $scope.deleteStock = function() {
-
+        $scope.deleteStock = function(index) {
+            var dialog = ngDialog.openConfirm({
+                template:'application/resource/js/templates/confirmTemplate.html'
+            });
+            dialog.then(function(){
+                console.log($scope.stockList[index].stock_code);
+                User.deleteStock({
+                    type: "deleteStock",
+                    usrid: "tangye",
+                    stockID: $scope.stockList[index].stock_code
+                }, function(_res) {
+                    $scope.stockList.splice(index, 1);
+                    $scope.currentStockCode = $scope.stockList[0].stock_code;
+                    $scope.switchPeriod(0);
+                    alert("删除成功!");
+                }, function(err){
+                    alert("删除失败!");
+                });
+            });
         }
 
         function dateFormat(date) {
@@ -274,29 +291,6 @@ angular.module("weibo.controllers", ["ngDialog"])
             });
         }
     }])
-    .filter('sentimentFilter', function () {
-        return function(value, index, trend){
-            var starNum = 0;
-            var dom;
-            trend == "up" ? dom = "<img src='application/resource/images/icon_up.png'>" : dom = "<img src='application/resource/images/icon_down.png'>";
-
-            if(value >= 0 && value <= 50)
-                starNum = 1;
-            else if(value <= 100)
-                starNum = 2;
-            else if(value <= 200)
-                starNum = 3;
-            else if(value <= 350)
-                starNum = 4;
-            else
-                starNum = 5;
-
-            for(var count = 0; count < starNum; count ++) {
-                $(".wb-sentiment:eq(" + index + ")").append(dom);
-            }
-            $(".wb-sentiment:eq(" + index + ")").append("<br>");
-        };
-    })
     .controller('financialSentimentCtrl', ["$scope", "Weibo", "ngDialog", function ($scope, Weibo, ngDialog) {
         Weibo.getFinancialTask({ type: "getTask", usrid: "tangye"}, function(_res) {
            $scope.taskList = _res.keyword_task;

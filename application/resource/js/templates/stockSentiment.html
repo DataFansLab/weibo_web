@@ -38,10 +38,10 @@
                             <div class="wb-img">
                                 <p class="img-title">{{ weibo[0] }}</p>
                             </div>
-                            <div class="wb-sentiment {{20 | emotion}}">
+                            <div class="wb-sentiment">
                                 <!--{{ weibo.up | sentimentFilter:$index:"up" }}
                                 {{ weibo.down | sentimentFilter:$index:"down" }}-->
-
+                                <p  ng-repeat="stock in weibo[1]" class=" {{stock[1] | emotion}} mr0" style="margin-bottom: 8px;"></p>
                             </div>
                             <div class="wb-stock">
                                 <p class="mr0" ng-repeat="stock in weibo[1]">{{stock[0]}},</p>
@@ -51,19 +51,21 @@
                 </div>
             </div>
         </div>
+
+        <div class="pull-left related-stock-container">
+            <h3 class="h3">关键词影响度分析图</h3>
+            <input class="keyword-input" placeholder="请输入关键词，查阅该事件对贵州茅台的影响度"/>
+        </div>
+        <div class="pull-left keyword-container">
+            <h3 class="h3">社交关键词</h3>
+            <span ng-repeat="keyword in socialWords" class="inline-block" ng-class ="keyword[3]">{{ keyword[0] }}</span>
+        </div>
+        <div class="pull-left rank-container">
+            <h3 class="h3">关注度排名</h3>
+            <p style="color: #ccc; text-align: center" class="font14">总排名<span style="color: #327cc0">第{{ rank.boardRank}}名  </span>
+                {{ rank.industry }}板块排名<span style="color: #ffde59">第{{rank.industryRank}}名</span></p>
+            <div id="hot-ranking-chart"></div>
+        </div>
     </div>
-    <div class="pull-left related-stock-container">
-        <h3 class="h3">关键词影响度分析图</h3>
-        <input class="keyword-input" placeholder="请输入关键词，查阅该事件对贵州茅台的影响度"/>
-    </div>
-    <div class="pull-left keyword-container">
-        <h3 class="h3">社交关键词</h3>
-        <span ng-repeat="keyword in socialWords" class="inline-block" ng-class ="keyword[3]">{{ keyword[0] }}</span>
-    </div>
-    <div class="pull-left rank-container">
-        <h3 class="h3">关注度排名</h3>
-        <p style="color: #ccc; text-align: center" class="font14">总排名<span style="color: #327cc0">第{{ rank.boardRank}}名  </span>
-            {{ rank.industry }}板块排名<span style="color: #ffde59">第{{rank.industryRank}}名</span></p>
-        <div id="hot-ranking-chart"></div>
-    </div>
+
 </div>
